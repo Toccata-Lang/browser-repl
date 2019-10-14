@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+  <head >
+    <title >Toccata REPL</title>
+    <script src="scripter.js"
+	    type="text/javascript"
+	    style="max-width: 500px"> 
+    </script> 
+  </head>
+  <body id="body" style="margin: 0px">
+    <form>
+      <div style="width: 100vw; display: flex; flex-direction: row;">
+	<div style="border-style: solid; border-width: 1px; border-color: green;">
+	  <textarea id="output"
+		    style="width: 50vw; height: 75vh;"
+		    readonly
+		    rows="80">
+	  </textarea>
+	</div>
+	<div id="sandbox"
+	     style="border-style: solid; border-width: 1px; border-color: purple;
+		    width: 50vw; display: none;">sandbox</div>
+      </div>
+      <textarea id="expression"
+		oninput="doScript(this.value);"
+		rows="5"
+		placeholder="Enter a Toccata expression here"
+		style="width: 100%; border-style: solid; border-width: 3; border-color: pink;"></textarea>
+    </form>
+  </body>
+</html>

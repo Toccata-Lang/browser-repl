@@ -1,0 +1,297 @@
+(def text ["
+Welcome to Toccata!
+
+This tutorial is intended to get you up to speed and doing something useful as quickly
+as possible. So let's get right to. First thing is how to navigate it. Holding the 'Control'
+or 'Ctrl' down while pressing the 'N' or 'p' keys will move bring up the next or previous
+message. Go ahead and move to the next message."
+           "
+You made the jump.
+
+Toccata is a programming language that you can use to write all kinds of software in. It
+fall in the category of general programming languages. You'll be typing Toccata expressions
+in the box below. These expressions wil be interpreted and the expression and the results
+will added to this box. You can type any expression at anytime. And this tutorial will teach
+you what to type.
+
+One other note. Programming is full of jargon and we keep inventing more as we go. This lets
+us programmers communicate with each other more easily but sounds like gibberish to
+non-programmers. I'll try to define each term I use as we go along, so you may want to 
+write down each term in a notebook. You'll be surprised how fast you'll pick it up.
+
+We're eventually going to write a Tic-Tac-Toe game for the web. But we've got a ways to go.
+If you're an experienced programmer, you can probably skip most of the explanations and just
+type in the examples.
+
+First of all are integers. Type the following number expression
+
+  73724"
+             "
+The '=>' shows you what the result was. You can type any number you want. The next simple
+expression is what's commonly called a string. There are signified by double-quote \".
+
+Type this line, double-quotes and all.
+
+  \"a string of characters\"
+  
+Each letter is a character. Digits and punctuation are characters as well. And so are so called
+'whitespace' characters like spaces and newlines. I'll try keep these expressions reasonable,
+but I strongly urge you to type them in and not copy/paste them. Something happens in your
+brain as you type them that will make your progress much faster. So type in the following
+expression.
+
+  (str \"Howdy\" \" \" \"folks\")
+  
+You should see '=> Howdy folks'. The expression is enclosed in parentheses meaning that this is
+a call to a function. 'str' is a function that takes any number of values (in this case three
+strings), converts them all to strings and then combines those into one long string. Functions 
+are how we do things in programming. It's all about writing functions that call other functions
+to get stuff done."
+           "
+So let's write a function. Type this expression
+
+  (defn hi-there [name]
+    (str \"Howdy \" name))
+
+Here's what each part means. The 'defn' means \"define a function\". 'hi-there' is the name of
+function and how we're going to call it later. '[name]' means that this function requires 
+one value. 'name' is what's called a parameter. When this function is called, the parameter 'name'
+will be whatever value was passed as an argument to the function.
+
+Then there's one function call to 'str' passing the string \"Howdy \" and the parameter 'name'.
+Now you can call this function (also called 'running the function') like this.
+
+  (hi-there \"Frankie\")
+
+And now you can call 'hi-there' as many times as you like with different strings as arguments.
+Also try passing an integer to it and see what happens."
+           "
+By the way, all of this happening in your browser, nothing is being sent to the server to execute.
+
+Functions are bundled together in groups. These collections go by different names; libraries, modules,
+etc. There are nuances about how each type of collection is used, thus the different names. But
+they're all just collections of functions.
+
+Every language comes with a collection of built-in functions. These are the most basic functions
+programmers use to build software. This collection is called the 'standard library' or the 'core
+library' or just the 'core'. You can see Toccata's core library by going to the following URL.
+You'll have to copy/paste it since I can't put links in this box
+
+https://github.com/Toccata-Lang/toccata/blob/master/core.toc
+
+Don't worry about understanding all that right now. We'll get there.
+
+Let's do something with integers. Type the following expression
+
+  (+ 3 881 12)
+
+And now you can add numbers. Try some other common arithmetic functions like -, *. You'll notice
+there's no '/' function. That's because there's two parts. The first is 'div' and second is 'mod'
+experiment with each of those a couple of times. If you happen to try to divide by 0, you won't
+get any result because the system crashes. :)"
+           "
+And now we jump into the deep end. :)
+
+You're reading and interacting with a web page in your browser. You can see see the raw source
+in most browsers by hitting ctrl-u. What you see is the file your browser downloaded from the
+Toccata web site. It's written in a language called HTML. Your browser interprets that file
+to create an internal representation which it then uses to show it to you.
+
+Here's the point, you can use Toccata functions to look at, and change, this internal data
+structure and cause the browser to display *anything*. This web page has a place for us to
+experiment with HTML. It's currently invisible. So let's find it and make it visible. We'll do
+this in several steps because there's a lot to explain."
+           "
+First we find it. Type this expression
+
+  (dom/get-element-by-id \"sandbox\")
+
+Not every function can be in the core library. 'get-element-by-id' is in a library with a bunch
+of other functions. When calling these functions, we prefix their name with \"dom/\". We'll see
+other libraries very soon.
+
+In the browser, a web page is called a document and it's internal representation called the DOM
+which stands for Document Object Model because the web page document is a collection of page
+objects. So the name of the Toccata library to work with these document objects is 'dom'.
+
+The document objects are also called elements (and as we'll see in a second, nodes). So this
+function searches through all the document elements to find the one with an ID of 'sandbox'.
+
+But elements are not required to have an ID. It's optional. And its possible to mispell the ID.
+Try this next line and compare. Notice we drop the 'o' from 'sandbox'.
+
+  (dom/get-element-by-id \"sandbx\")
+ 
+What's this 'maybe' / 'nothing' stuff. That requires a tangent."
+           "
+In addition to integers and strings, Toccata has other kinds of values. Each of these kinds
+of values is called a 'type'. Integers are a type and strings are a type. There's another
+type of value that can actually have another value inside it. This is the Maybe type. Lets
+explore this a little. We can create a Maybe value with the 'maybe' functiona. Hopefully by
+now yuo can recognize Toccata expressions to type in.
+
+  (maybe 7)
+
+You can get the value inside out using 'extract'
+
+  (extract (maybe 7))
+
+There's a special Maybe value that is empty called 'nothing'
+
+  nothing
+
+But if you try to 'extract' from 'nothing' ...
+
+  (extract nothing)
+
+There's lots more about Maybe and other types, but for now, we'll proceed."
+           "
+Let's make sure everything is working.
+
+  (dom/get-element-by-id \"sandbox\")
+
+If you didn't get a 'nothing' value back, let's extract the sandbox element and save it for
+use later
+
+  (def sandbox (extract (dom/get-element-by-id \"sandbox\")))
+
+You read this expression from the inside out. First, we get the DOM element as before. Then,
+the result of that function call is passed to 'extract' to pull the DOMNode out of the Maybe
+value. The 'def' is how we assign a name to a value so we can use that value later. The 'defn'
+expression we saw early on (no need to enter these next two expressions)
+
+  (defn hi-there [name] ... )
+
+Is actually shorthand for
+ 
+  (def hi-there (fn [name] ... )
+
+(The 'fn' expression will be explained later, but in short, it's how we can create a function
+with no name.) And now, make sure 'sandbox' is what we expect.
+
+  sandbox
+
+And it should print '=> <DOMNode>' as the result."
+           "
+Now that we have our sandbox node, we can make it visible. The HTML language I mentioned
+earlier is how the structure of web pages are specified. It stands for HyperText Markup Language.
+But HTML doesn't say much if anything about how the elements should be displayed. That falls to
+another language call CSS which stands for Cascading Style Sheets. Each element/node has various
+style attributes to control if and how an element is displayed. So, type this expression
+
+  (dom/set-style-attribute sandbox \"display\" \"block\")
+
+and the sandbox should appear.
+
+Now that we can see it, we see the text 'sandbox' in it. To see why, do
+
+  (dom/inner-html sandbox)
+
+Every node can contain other nodes. It's the parent and the nodes it contains are its children.
+The browser can convert these child nodes to a string of HTML code and that's what 'inner-html'
+does. In this case, we see the string \"sandbox\" is the inner HTML.
+
+And finally, let's set the inner HTML to something.
+
+  (dom/inner-html \"Howdy, folks\")
+"
+           "
+So just banging some text into the sandbox causes it to show up. But let's do something a little
+more interesting.
+
+  (dom/inner-html sandbox \"<span style='color: green;'>Howdy, folks</span>\")
+
+And the text is now green. That 'span' business is how you specifify an HTML element and the 'style'
+attribute tells the browser how to display it. I don't have the time or space here to fully
+describe HTML and CSS. But there are loads of good tutorials on the net you can find. Realize that
+you can set the inner HTML on the sandbox to any HTML you want (pretty much) and it'll get displayed.
+So it's a great way to experiment.
+
+And for anything more than a short snippet, it's a horrible way to do it. It's so easy to mistype
+something. And browsers always do their best to interpret it and display something. So the only
+feedback you get is that something may not look right. Or worse, looks right for the wrong reasons.
+
+Toccata has ways to make this easier though. First, let's create a little function to reduce our
+typing.
+
+  (defn try-html [s]
+    (dom/inner-html sandbox s))
+
+and use it
+
+   (try-html \"Eat at Freddy T's\")"
+           "
+There are a number of functions to help create HTML and CSS in Toccata. They're grouped into 3
+modules. One for HTML, one for CSS and one for documents in general. The source code is at
+these links, if you're curious.
+
+https://github.com/Toccata-Lang/html-css/blob/master/html.toc
+https://github.com/Toccata-Lang/html-css/blob/master/css.toc
+https://github.com/Toccata-Lang/html-css/blob/master/document.toc
+
+Since the HTML and CSS functions get typed a lot, we want their prefixes to be as short as
+possible. To create a 'span'element like before, we can do
+
+  (def spn (h/span \"some text\"))
+
+The prefix for the HTML functions is 'h'. Likewise the prefix for the CSS functions is 'c'. And
+the prefix for the document functions is 'doc'.  So the following will convert that span element
+into an HTML string.
+
+  (doc/html-str spn)
+
+And then we see what that looks like in the sandbox
+
+  (try-html (doc/html-str spn))
+
+Using the CSS functions to add a little color.
+
+  (try-html (doc/html-str (c/color spn c/blue)))
+"
+           "
+For reference from the last step, we had
+
+  (try-html (doc/html-str (c/color spn c/blue)))
+
+You can see that to understand this expression, we have to find the innermost expression, read it
+and then work our way out. This is fine for the computer, but less so for us humans. So there's a
+different way to write this.
+
+  (-> spn (c/color c/blue) (doc/html-str) (try-html))
+
+Or split it across multiple lines
+
+  (-> spn
+      (c/color c/blue)
+      doc/html-str
+      try-html)
+
+This let's us see how the results of one expression becomes the input to the next. This is called
+'threading' since the data is threaded through each expression. The parentheses are optional if
+an expression just has a function to call with no additional arguments.
+"
+           "
+Now try this
+
+  (-> spn
+      (c/color c/red)
+      (c/font-size (c/px 18))
+      doc/html-str
+      try-html)
+
+There are functions in the HTML and CSS namespaces to fully specify any web page you care to
+construct. Knowing how to use them requires knowing what you want to construct. For instance,
+the 'font-size' function sets the size of the characters of the text in the span. In this case
+it's specified in pixels using the 'px' function.
+
+To recap; we use the funcitons in the HTML and CSS modules to create a Toccata data structure that
+describes our web page. Then we use the 'html-str' function to convert that into an HTML string.
+Then we use the 'try-html' function (which uses 'inner-html') to tell the browser to interpret our
+HTML and create an internal data structure and display. Then we can use the functions from the DOM
+module to modify those nodes if we want to change them further.
+
+With the basics in hand, let's finally do that Tic-Tac-Toe game we mentioned..
+"
+           "
+"
+           ])

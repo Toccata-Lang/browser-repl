@@ -1,0 +1,197 @@
+
+(add-ns grmr (git-dependency "https://github.com/Toccata-Lang/grammar.git"
+                             "grammar.toc"
+                             :sha "964a824"))
+(add-ns sm (git-dependency "https://github.com/Toccata-Lang/state-maybe.git"
+                           "state-maybe.toc"
+                           :sha "6782d7e"))
+(add-ns rdr (git-dependency "https://github.com/Toccata-Lang/reader.git"
+                            "reader.toc"
+                            :sha "de1dad5"))
+(add-ns rd (git-dependency "https://github.com/Toccata-Lang/recursive-descent.git"
+                           "recursive-descent.toc"
+                           :sha "8b07011"))
+(add-ns fio (git-dependency "https://github.com/Toccata-Lang/file-io.git"
+                            "file-io.toc"
+                            :sha "4b6a964"))
+(add-ns sys (git-dependency "https://github.com/Toccata-Lang/system.git"
+                            "system.toc"
+                            :sha "2978872"))
+(add-ns ev (git-dependency "https://github.com/Toccata-Lang/eval.git"
+                           "eval.toc"
+                           :sha "55a5edc"))
+(add-ns interp (git-dependency "https://github.com/Toccata-Lang/eval.git"
+                               "interpreter.toc"
+                               :sha "55a5edc"))
+(add-ns tag (git-dependency "https://github.com/Toccata-Lang/html-css.git"
+                            "tag.toc"
+                            :sha "a317ea7"))
+(add-ns html (git-dependency "https://github.com/Toccata-Lang/html-css.git"
+                             "html.toc"
+                             :sha "a317ea7"))
+(add-ns css (git-dependency "https://github.com/Toccata-Lang/html-css.git"
+                            "css.toc"
+                            :sha "a317ea7"))
+(add-ns doc (git-dependency "https://github.com/Toccata-Lang/html-css.git"
+                            "document.toc"
+                            :sha "a317ea7"))
+(add-ns dom (git-dependency "https://github.com/Toccata-Lang/wasm.git"
+                            "dom.toc"
+                            :sha "357f585"))
+(add-ns w (git-dependency "https://github.com/Toccata-Lang/wasm.git"
+                          "wasm.toc"
+                          :sha "357f585"))
+
+(def base-imports [(interp/CompiledNs 'file (either (get fio/symbols 'filename)
+                                                    "")
+                                      fio/symbols fio/protocols)
+                   (interp/CompiledNs 'h  (either (get html/symbols 'filename)
+                                                  "")
+                                      html/symbols html/protocols)
+                   (interp/CompiledNs 'tag  (either (get tag/symbols 'filename)
+                                                    "")
+                                      tag/symbols tag/protocols)
+                   (interp/CompiledNs 'doc  (either (get doc/symbols 'filename)
+                                                    "")
+                                      doc/symbols doc/protocols)
+                   (interp/CompiledNs 'dom  (either (get dom/symbols 'filename)
+                                                    "")
+                                      dom/symbols dom/protocols)
+                   (interp/CompiledNs 'w  (either (get w/symbols 'filename)
+                                                  "")
+                                      w/symbols w/protocols)
+                   (interp/CompiledNs 'c  (either (get css/symbols 'filename)
+                                                  "")
+                                      css/symbols css/protocols)])
+
+(def eval-state
+  (let [core-ns (interp/make-compiled-ns "" (-> symbols
+                                                (dissoc 'println)
+                                                (assoc-all 'clear (fn []
+                                                                    (map (dom/get-element-by-id "output")
+                                                                         (fn [n]
+                                                                           (dom/inner-html n " "))))
+
+                                                           ;; TODO: remove this one
+                                                           'sandbox (extract (dom/get-element-by-id "sandbox"))) 
+
+                                                (comp interp/interp-symbols))
+                                         protocols {})
+        import-paths (reduce base-imports {"" ""}
+                             (fn [m import]
+                               (assoc m (.path import) (rdr/tag (.ns-sym import)))))
+        base-imports (reduce base-imports {"" core-ns}
+                             (fn [base-imports compiled]
+                               (assert (instance? CompiledNs compiled))
+
+                               (assoc base-imports
+                                 (.ns-sym compiled)
+                                 (interp/make-compiled-ns (str (.ns-sym compiled))
+                                                          (.syms compiled)
+                                                          (.protos compiled)
+                                                          import-paths))))
+        ns-state (-> base-imports
+                     (vals)
+                     (conj core-ns)
+                     (reduce {} (fn [nss ns]
+                                  (assoc nss (.path ns) ns))))
+        base-syms (map-vals base-imports .syms)]
+    (agent (-> ev/empty-state
+               (.ns ns-state)
+               (assoc-in [.ns "script-file"] (ev/EvalNamespace "script-file" base-syms {}
+                                                               import-paths [{}]))
+               (.base-imports base-syms)
+               (.type-count (interp/type-count))
+               (.file-name "script-file")
+               (.command-line ["script-file"])))))
+
+(defn clear-expression []
+  (inline C "
+
+#ifdef TOCCATA_WASM
+   EM_ASM({
+     var node = document.getElementById('expression');
+     node.value = \"\";});
+#endif
+   return(nothing);\n
+"))
+
+(def read-sub-expr
+  (grmr/recurse "expr"))
+
+(def read-expr
+  (grmr/recursive-rule "expr"
+                       (grmr/all rdr/ignore-whitespace
+                                 (grmr/any rdr/read-integer-literal
+                                           rdr/read-string-literal
+                                           rdr/read-symbol
+                                           (grmr/all (grmr/ignore "'")
+                                                     read-sub-expr)
+                                           (grmr/all (grmr/ignore "[")
+                                                     (grmr/none-or-more read-sub-expr)
+                                                     (grmr/ignore "]"))
+                                           (grmr/all (grmr/ignore "{")
+                                                     (grmr/none-or-more read-sub-expr)
+                                                     (grmr/ignore "}"))
+                                           (grmr/all (grmr/ignore "#{")
+                                                     (grmr/none-or-more read-sub-expr)
+                                                     (grmr/ignore "}"))
+                                           (grmr/all rdr/read-open-paren
+                                                     (grmr/none-or-more read-sub-expr)
+                                                     rdr/read-close-paren)
+                                           (grmr/all
+                                            (grmr/ignore (grmr/one-or-more ";"))
+                                            (grmr/apply-fn to-str
+                                                           (grmr/none-or-more rdr/not-eol)))))))
+
+(def complete-expr (rd/parser (grmr/all read-expr rdr/newline)))
+
+(inline C "
+Value *newPrErr(Value *str) {
+
+#ifdef TOCCATA_WASM
+   EM_ASM_({
+     var str = rcvString($0);
+     var node = document.getElementById('output');
+     node.innerHTML = node.innerHTML + str;
+},
+   (int)str);
+#endif
+   return(str);\n
+}
+
+")
+
+(defn initPrErr []
+  (inline C "
+   prErrSTAR = &newPrErr;
+   return(nothing);"))
+
+(defn doScript [scr]
+  (assert (instance? String scr))
+  (send eval-state (fn [eval-state]
+                     (either (for [_ (complete-expr {'file-name ""
+                                                     'line-number 1}
+                                                    scr)
+                                   [_ asts] (ev/parse {'file-name "Expression line"
+                                                       'line-number 1}
+                                                      scr)
+                                   :let [_ (clear-expression)
+                                         _ (pr-err* scr)]
+                                   [result new-state] ((ev/eval asts) eval-state)
+                                   result (or (first result)
+                                              (maybe ""))]
+                               (do
+                                 (pr-err* "=> ")
+                                 (map (string-list result) pr-err*)
+                                 (pr-err* "\n\n")
+                                 new-state))
+                             eval-state))))
+
+(JS-callable doScript 1)
+
+(main [_]
+  (initPrErr)
+  (ev/init ev/universal-proto-fn)
+  (clear-expression)
+  (print-err "Welcome to Toccata!\n"))

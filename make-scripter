@@ -1,0 +1,13 @@
+#!/bin/bash
+
+$TOCCATA_DIR/new-toc scripter.toc > scripter.c &&
+$EMSCRIPTEN/emcc -I$TOCCATA_DIR\
+     $TOCCATA_DIR/core.c\
+     -O1\
+     -DTOCCATA_WASM=1\
+     scripter.c\
+     -s ALLOW_MEMORY_GROWTH=1\
+     -s ASSERTIONS=1\
+     -s WASM=1\
+     -o scripter.js
+
