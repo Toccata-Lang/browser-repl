@@ -1,0 +1,47 @@
+(defn f->c [deg-f]
+  (div (* 100 (- deg-f 32)) 18))
+(defn c->f [deg-c]
+  (+ (* deg-c 18) 320))
+(defn set-output-temp [temp]
+  (map (dom/get-element-by-id "temp-out")
+       (fn [node]
+         (let [sign (either (and (< temp 0) (maybe "-"))
+                            "")
+               temp (either (map (< temp 0) (partial * -1))
+                            temp)]
+           (dom/inner-html node (str sign (div temp 10) "." (mod temp 10)))))))
+(defn updateOutput []
+  (for [out-unit (dom/get-element-by-id "unit-out")
+        temp-in (map (dom/get-element-by-id "temp")
+                     (fn [node]
+                       (str-to-int (dom/get-attribute node "value"))))
+        c-radio (dom/get-element-by-id "unit-c")]
+    (or (and (dom/get-attribute c-radio "checked")
+             (do
+               (dom/inner-html out-unit "F")
+               (set-output-temp (c->f temp-in))))
+        (do
+          (dom/inner-html out-unit "C")
+          (set-output-temp (f->c temp-in))))))
+(JS-callable updateOutput 0)
+(def form (h/div {'id "app"}
+                 (h/h1 "Temp Converter")
+                 (h/div (h/div (h/p "Convert from")
+                               (h/div (h/input {'type "radio" 'id "unit-c" 'name "unit" 'checked "checked" 'onclick "updateOutput();"})
+                                      (h/label {'for "unit-c"}
+                                               "Celsius"))
+                               (h/div (h/input {'type "radio" 'id "unit-f" 'name "unit" 'checked "checked" 'onclick "updateOutput();"})
+                                      (h/label {'for "unit-f"}
+                                               "Fahrenheit"))))
+                 (h/div (h/label {'for "temp"}
+                                 "Temperature:")
+                        (h/input {'type "number" 'id "temp" 'onkeyup "updateOutput();" 'name "temp"}))
+                 (h/div (h/h3 "Converted Value")
+                        (h/span {'id "temp-out"}
+                                "-")
+                        (h/span {'id "unit-out"}
+                                "F"))))
+(map (dom/get-element-by-id "sandbox")
+     (fn [sandbox]
+       (dom/set-style-attribute sandbox "display" "block")
+       (dom/inner-html sandbox (doc/html-str form))))

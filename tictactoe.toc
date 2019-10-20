@@ -1,0 +1,123 @@
+
+(defn square []
+  (-> (h/button "X")
+      (c/background-color (c/hex-color "fff"))
+      (c/border-width (c/px 1))
+      (c/border-style c/solid)
+      (c/border-color (c/hex-color "999"))
+      (c/float c/left)
+      (c/font-size (c/px 24))
+      (c/font-weight c/bold)
+      (c/line-height (c/px 34))
+      (c/height (c/px 34))
+      (c/margin-right (c/px -1))
+      (c/margin-top (c/px -1))
+      (c/padding (c/px 0))
+      (c/text-align c/center)
+      (c/width (c/px 34))))
+
+(defn row [start]
+  (h/div (square)
+         (square)
+         (square)))
+
+(def board
+  (-> (h/div (row 0)
+             (row 3)
+             (row 6))
+      (c/display c/flex)
+      (c/flex-direction c/column)))
+
+(def game-info
+  (h/div (-> (h/div (-> (h/label "Next Player:")
+                        (h/attr "for" "player")
+                        (c/font-size (c/px 24))
+                        (c/font-weight c/bold))
+                    (-> (h/input)
+                        (h/attr "value" "X")
+                        (h/attr "id" "player")
+                        (h/attr "type" "text")
+                        (h/attr "size" 1)
+                        (h/attr "readonly" "")
+                        (c/border-style c/none)
+                        (c/margin-left (c/px 14))
+                        (c/font-size (c/px 24))
+                        (c/font-weight c/bold)))
+             (c/display c/flex)
+             (c/flex-direction c/row))
+         board))
+
+(def page
+  (doc/HTMLPage
+   (h/head
+    (h/title "TicTacToe"))
+   (h/body game-info)))
+
+(file/stdout (doc/html-str page))
+
+(defn is-winner [board a b c]
+  (for [a (get board a)
+        b (get board b)
+        c (get board c)
+        result (= a b c)]
+    result))
+
+(defn check-winner [board]
+  (either (flat-map (or (is-winner board 0 1 2)
+                        (is-winner board 3 4 5)
+                        (is-winner board 6 7 8)
+                        (is-winner board 0 3 6)
+                        (is-winner board 1 4 7)
+                        (is-winner board 2 5 8)
+                        (is-winner board 0 4 8)
+                        (is-winner board 2 4 6))
+                    first)
+          ""))
+
+(defn make-move [board position]
+  (let [player (either (get game-state 'player)
+                       "O")
+        next-player (either (and (= "X" player)
+                                 (maybe "O"))
+                            "X")]
+    (either (for [_ (= "" (.winner game-state))
+                  curr-board (get-in game-state [.history curr-move])
+                  curr-square-value (get curr-board y)
+                  _ (= "" curr-square-value)
+                  new-board (store curr-board y player)]
+              (let [new-history (-> (.history game-state)
+                                    (take (inc curr-move))
+                                    (conj new-board))
+                    game-state (-> game-state
+                                   (.curr-move (inc curr-move))
+                                   (.history new-history))
+                    winner (check-winner new-board)]
+                (map (d/get-element-by-id "status")
+                     (fn [node]
+                       (d/inner-html node
+                                     (either (and (= "" winner)
+                                                  (maybe (str "Next player: " next-player)))
+                                             (str "Winner: " winner)))))
+                (reset-history (inc curr-move))
+                (map (range (count new-board)) (fn [idx]
+                                                 (map (d/get-element-by-id (str "button" idx))
+                                                      (fn [node]
+                                                        (d/inner-html node (either (get new-board idx)
+                                                                                   ""))))))
+                (map (d/get-element-by-id (str "position" (inc curr-move)))
+                     (fn [node]
+                       (d/set-style-attribute node "display" "block")))
+                (GameState (inc curr-move) new-history winner)))
+            game-state)))
+
+(def empty-board ["" "" ""
+                  "" "" ""
+                  "" "" ""])
+
+(def game-state (agent {'player "X"
+                        'board empty-board}))
+
+(defn move [x]
+  (send game-state make-move x))
+
+;; (JS-callable move 1)
