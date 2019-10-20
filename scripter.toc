@@ -25,22 +25,22 @@
                                :sha "55a5edc"))
 (add-ns tag (git-dependency "https://github.com/Toccata-Lang/html-css.git"
                             "tag.toc"
-                            :sha "a317ea7"))
+                            :sha "8112fab"))
 (add-ns html (git-dependency "https://github.com/Toccata-Lang/html-css.git"
                              "html.toc"
-                             :sha "a317ea7"))
+                             :sha "8112fab"))
 (add-ns css (git-dependency "https://github.com/Toccata-Lang/html-css.git"
                             "css.toc"
-                            :sha "a317ea7"))
+                            :sha "8112fab"))
 (add-ns doc (git-dependency "https://github.com/Toccata-Lang/html-css.git"
                             "document.toc"
-                            :sha "a317ea7"))
+                            :sha "8112fab"))
 (add-ns dom (git-dependency "https://github.com/Toccata-Lang/wasm.git"
                             "dom.toc"
-                            :sha "357f585"))
+                            :sha "35055fb"))
 (add-ns w (git-dependency "https://github.com/Toccata-Lang/wasm.git"
                           "wasm.toc"
-                          :sha "357f585"))
+                          :sha "35055fb"))
 
 (def base-imports [(interp/CompiledNs 'file (either (get fio/symbols 'filename)
                                                     "")
@@ -64,6 +64,40 @@
                                                   "")
                                       css/symbols css/protocols)])
 
+(defn ptr [x]
+  (inline C Integer "
+   Value *result = integerValue((int)x_0);
+   dec_and_free(x_0, 1);
+   return(result);
+"))
+
+(defn deref [x]
+  (inline C  "
+   Value *y = (Value *)((Integer *)x_0)->numVal;
+   dec_and_free(x_0, 1);
+   incRef(y, 1);
+   return(y);
+"))
+
+(defn callToccata [f args]
+  (apply (deref f) (deref args)))
+
+(JS-callable callToccata 2)
+
+(defn js-callable [f arity]
+  (assert (instance? Integer arity))
+
+  (let [s (str "window." (ev/arity-name f) " = function("
+               (to-str (interpose (map (range arity) (partial str "arg")) ", ")) ") {\n"
+               "callToccata(" (ptr f) ", sendArray(["
+               (to-str (interpose (map (range arity)
+                                       (fn [idx]
+                                         (str "arg" idx)))
+                                  ", "))
+               "]));\n return;\n};")]
+    (w/JS-eval s)))
+
+
 (def eval-state
   (let [core-ns (interp/make-compiled-ns "" (-> symbols
                                                 (dissoc 'println)
@@ -72,8 +106,10 @@
                                                                          (fn [n]
                                                                            (dom/inner-html n " "))))
 
-                                                           ;; TODO: remove this one
-                                                           'sandbox (extract (dom/get-element-by-id "sandbox"))) 
+                                                           'JS-callable js-callable
+                                                           ;; TODO: remove these
+                                                           ;; 'sandbox (extract (dom/get-element-by-id "sandbox"))
+                                                           ) 
 
                                                 (comp interp/interp-symbols))
                                          protocols {})
@@ -195,3 +231,27 @@ Value *newPrErr(Value *str) {
   (ev/init ev/universal-proto-fn)
   (clear-expression)
   (print-err "Welcome to Toccata!\n"))
+
+;; (main [params]
+;;   ;; (initPrErr)
+;;   (ev/init ev/universal-proto-fn)
+;;   ;; (clear-expression)
+;;   (print-err "Welcome to Toccata!\n")
+;;   (for [file-name (second params)
+;;         :let [_ (print-err "Input file is" file-name)]
+;;         input-file (or (fio/file-in file-name)
+;;                        (do
+;;                          (print-err "Coud not read file:" file-name)
+;;                          nothing))
+;;         [_ asts] (or (ev/parse {'file-name file-name
+;;                                 'line-number 1}
+;;                                (lazy-list input-file))
+;;                      (do
+;;                        (print-err "Could not parse file into AST's")
+;;                        nothing))
+;;         :let [_ (print-err "File is parsed")]
+;;         _ (or ((ev/eval asts) (extract eval-state))
+;;               (do
+;;                 (print-err "Could not evaluate AST's")
+;;                 nothing))]
+;;     (print-err "Interpretation completed")))
