@@ -3,6 +3,7 @@
 
   <head >
     <title >Toccata REPL</title>
+    <meta charset="utf-8">
     <script src="scripter.js"
 	    type="text/javascript"
 	    style="max-width: 500px"> 
@@ -20,7 +21,9 @@
 	</div>
 	<div id="sandbox"
 	     style="border-style: solid; border-width: 1px; border-color: purple;
-		    width: 50vw; display: none;">sandbox</div>
+		    width: 50vw; display: block;">
+	  sandbox
+	</div>
       </div>
       <textarea id="expression"
 		oninput="doScript(this.value);"
@@ -28,5 +31,13 @@
 		placeholder="Enter a Toccata expression here"
 		style="width: 100%; border-style: solid; border-width: 3; border-color: pink;"></textarea>
     </form>
+    <input type="file" id="inputFile"
+	   onchange="var fi = this.files.item(0);
+		     var reader = new FileReader();
+		     reader.onload = function() {
+		      doScript(reader.result);
+		     };
+		     reader.readAsBinaryString(fi);
+"/>
   </body>
 </html>

@@ -1,6 +1,10 @@
 
-(defn square []
-  (-> (h/button "X")
+;; View
+
+(defn square-view [square-num]
+  (-> (h/button)
+      (h/attr "id" (str "square" square-num))
+      (h/attr "type" "button")
       (c/background-color (c/hex-color "fff"))
       (c/border-width (c/px 1))
       (c/border-style c/solid)
@@ -17,107 +21,86 @@
       (c/width (c/px 34))))
 
 (defn row [start]
-  (h/div (square)
-         (square)
-         (square)))
+  (h/div (square-view start)
+         (square-view (+ start 1))
+         (square-view (+ start 2))))
 
-(def board
+(def board-view
   (-> (h/div (row 0)
              (row 3)
              (row 6))
       (c/display c/flex)
       (c/flex-direction c/column)))
 
-(def game-info
-  (h/div (-> (h/div (-> (h/label "Next Player:")
-                        (h/attr "for" "player")
-                        (c/font-size (c/px 24))
-                        (c/font-weight c/bold))
-                    (-> (h/input)
-                        (h/attr "value" "X")
-                        (h/attr "id" "player")
-                        (h/attr "type" "text")
-                        (h/attr "size" 1)
-                        (h/attr "readonly" "")
-                        (c/border-style c/none)
-                        (c/margin-left (c/px 14))
-                        (c/font-size (c/px 24))
-                        (c/font-weight c/bold)))
-             (c/display c/flex)
-             (c/flex-direction c/row))
-         board))
-
-(def page
-  (doc/HTMLPage
-   (h/head
-    (h/title "TicTacToe"))
-   (h/body game-info)))
-
-(file/stdout (doc/html-str page))
-
-(defn is-winner [board a b c]
-  (for [a (get board a)
-        b (get board b)
-        c (get board c)
-        result (= a b c)]
-    result))
-
-(defn check-winner [board]
-  (either (flat-map (or (is-winner board 0 1 2)
-                        (is-winner board 3 4 5)
-                        (is-winner board 6 7 8)
-                        (is-winner board 0 3 6)
-                        (is-winner board 1 4 7)
-                        (is-winner board 2 5 8)
-                        (is-winner board 0 4 8)
-                        (is-winner board 2 4 6))
-                    first)
-          ""))
-
-(defn make-move [board position]
-  (let [player (either (get game-state 'player)
-                       "O")
-        next-player (either (and (= "X" player)
-                                 (maybe "O"))
-                            "X")]
-    (either (for [_ (= "" (.winner game-state))
-                  curr-board (get-in game-state [.history curr-move])
-                  curr-square-value (get curr-board y)
-                  _ (= "" curr-square-value)
-                  new-board (store curr-board y player)]
-              (let [new-history (-> (.history game-state)
-                                    (take (inc curr-move))
-                                    (conj new-board))
-                    game-state (-> game-state
-                                   (.curr-move (inc curr-move))
-                                   (.history new-history))
-                    winner (check-winner new-board)]
-                (map (d/get-element-by-id "status")
-                     (fn [node]
-                       (d/inner-html node
-                                     (either (and (= "" winner)
-                                                  (maybe (str "Next player: " next-player)))
-                                             (str "Winner: " winner)))))
-                (reset-history (inc curr-move))
-                (map (range (count new-board)) (fn [idx]
-                                                 (map (d/get-element-by-id (str "button" idx))
-                                                      (fn [node]
-                                                        (d/inner-html node (either (get new-board idx)
-                                                                                   ""))))))
-                (map (d/get-element-by-id (str "position" (inc curr-move)))
-                     (fn [node]
-                       (d/set-style-attribute node "display" "block")))
-                (GameState (inc curr-move) new-history winner)))
-            game-state)))
+(def game-view
+  (h/div (h/div (-> "Next Player: X"
+                    (h/attr "id" "status")
+                    (c/font-size (c/px 24))
+                    (c/font-weight c/bold)))
+         board-view))
 
 (def empty-board ["" "" ""
                   "" "" ""
                   "" "" ""])
 
-(def game-state (agent {'player "X"
-                        'board empty-board}))
+;; Model
 
-(defn move [x]
-  (send game-state make-move x))
+(def curr-player (agent "X"))
+(def board (agent empty-board))
 
-;; (JS-callable move 1)
+;; Controller
+
+(defn next-player [curr-player]
+  (either (and (= "X" curr-player)
+               (maybe "O"))
+          "X"))
+
+(defn is-winner [board a b c]
+  (let [squares [(either (get board a) "")
+                 (either (get board b) "")
+                 (either (get board c) "")]]
+    (or (= squares ["X" "X" "X"])
+        (= squares ["O" "O" "O"]))))
+
+(defn check-winner [board]
+  (and (or (is-winner board 0 1 2)
+           (is-winner board 3 4 5)
+           (is-winner board 6 7 8)
+           (is-winner board 0 3 6)
+           (is-winner board 1 4 7)
+           (is-winner board 2 5 8)
+           (is-winner board 0 4 8)
+           (is-winner board 2 4 6))
+       (maybe board)))
+
+(defn update-board [board curr-player square-node square-num]
+  (either (flat-map (store board square-num curr-player)
+                    (fn [new-board]
+                      (or (check-winner board)
+                          (do
+                            (dom/inner-html square-node curr-player)
+                            (map (dom/get-element-by-id "status")
+                                 (fn [status-node]
+                                   (let [new-status (either (and (check-winner new-board)
+                                                                 (maybe (str "Winner: " curr-player)))
+                                                            (str "Next Player: " (next-player curr-player)))]
+                                     (dom/inner-html status-node new-status)
+                                     new-board)))))))
+          board))
+
+(defn set-square [curr-player square-node square-num]
+  (send board update-board curr-player square-node square-num)
+  (next-player curr-player))
+
+;; Initialization
+
+(dom/set-style-attribute sandbox "display" "block")
+(dom/inner-html sandbox (doc/html-str game-view))
+
+(map (range 9)
+     (fn [square-num]
+       (map (dom/get-element-by-id (str "square" square-num))
+            (fn [square-node]
+              (dom/handle-event square-node
+                                "click" (fn []
+                                          (send curr-player set-square square-node square-num)))))))

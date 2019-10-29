@@ -1,16 +1,16 @@
 
 (add-ns grmr (git-dependency "https://github.com/Toccata-Lang/grammar.git"
                              "grammar.toc"
-                             :sha "964a824"))
+                             :sha "5a3a870"))
 (add-ns sm (git-dependency "https://github.com/Toccata-Lang/state-maybe.git"
                            "state-maybe.toc"
                            :sha "6782d7e"))
 (add-ns rdr (git-dependency "https://github.com/Toccata-Lang/reader.git"
                             "reader.toc"
-                            :sha "de1dad5"))
+                            :sha "783bbe8"))
 (add-ns rd (git-dependency "https://github.com/Toccata-Lang/recursive-descent.git"
                            "recursive-descent.toc"
-                           :sha "8b07011"))
+                           :sha "6378d02"))
 (add-ns fio (git-dependency "https://github.com/Toccata-Lang/file-io.git"
                             "file-io.toc"
                             :sha "4b6a964"))
@@ -19,28 +19,28 @@
                             :sha "2978872"))
 (add-ns ev (git-dependency "https://github.com/Toccata-Lang/eval.git"
                            "eval.toc"
-                           :sha "55a5edc"))
+                           :sha "74c9172"))
 (add-ns interp (git-dependency "https://github.com/Toccata-Lang/eval.git"
                                "interpreter.toc"
-                               :sha "55a5edc"))
+                               :sha "74c9172"))
 (add-ns tag (git-dependency "https://github.com/Toccata-Lang/html-css.git"
                             "tag.toc"
-                            :sha "8112fab"))
+                            :sha "1b879fa"))
 (add-ns html (git-dependency "https://github.com/Toccata-Lang/html-css.git"
                              "html.toc"
-                             :sha "8112fab"))
+                             :sha "1b879fa"))
 (add-ns css (git-dependency "https://github.com/Toccata-Lang/html-css.git"
                             "css.toc"
-                            :sha "8112fab"))
+                            :sha "1b879fa"))
 (add-ns doc (git-dependency "https://github.com/Toccata-Lang/html-css.git"
                             "document.toc"
-                            :sha "8112fab"))
+                            :sha "1b879fa"))
 (add-ns dom (git-dependency "https://github.com/Toccata-Lang/wasm.git"
                             "dom.toc"
-                            :sha "35055fb"))
+                            :sha "ef306fd"))
 (add-ns w (git-dependency "https://github.com/Toccata-Lang/wasm.git"
                           "wasm.toc"
-                          :sha "35055fb"))
+                          :sha "ef306fd"))
 
 (def base-imports [(interp/CompiledNs 'file (either (get fio/symbols 'filename)
                                                     "")
@@ -64,39 +64,19 @@
                                                   "")
                                       css/symbols css/protocols)])
 
-(defn ptr [x]
-  (inline C Integer "
-   Value *result = integerValue((int)x_0);
-   dec_and_free(x_0, 1);
-   return(result);
-"))
-
-(defn deref [x]
-  (inline C  "
-   Value *y = (Value *)((Integer *)x_0)->numVal;
-   dec_and_free(x_0, 1);
-   incRef(y, 1);
-   return(y);
-"))
-
-(defn callToccata [f args]
-  (apply (deref f) (deref args)))
-
-(JS-callable callToccata 2)
-
+;; TODO: no longer correct
 (defn js-callable [f arity]
   (assert (instance? Integer arity))
 
   (let [s (str "window." (ev/arity-name f) " = function("
                (to-str (interpose (map (range arity) (partial str "arg")) ", ")) ") {\n"
-               "callToccata(" (ptr f) ", sendArray(["
+               "callToccata(" (dom/ptr f) ", sendArray(["
                (to-str (interpose (map (range arity)
                                        (fn [idx]
                                          (str "arg" idx)))
                                   ", "))
                "]));\n return;\n};")]
     (w/JS-eval s)))
-
 
 (def eval-state
   (let [core-ns (interp/make-compiled-ns "" (-> symbols
@@ -106,10 +86,12 @@
                                                                          (fn [n]
                                                                            (dom/inner-html n " "))))
 
-                                                           'JS-callable js-callable
+                                                           ;; TODO: js-callable is wrong
+                                                           ;; 'JS-callable js-callable
+
                                                            ;; TODO: remove these
-                                                           ;; 'sandbox (extract (dom/get-element-by-id "sandbox"))
-                                                           ) 
+                                                           'sandbox (either (dom/get-element-by-id "sandbox")
+                                                                            'sandbox)) 
 
                                                 (comp interp/interp-symbols))
                                          protocols {})

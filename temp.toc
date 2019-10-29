@@ -27,7 +27,7 @@
 (def form (h/div {'id "app"}
                  (h/h1 "Temp Converter")
                  (h/div (h/div (h/p "Convert from")
-                               (h/div (h/input {'type "radio" 'id "unit-c" 'name "unit" 'checked "checked" 'onclick "updateOutput();"})
+                               (h/div (h/input {'type "radio" 'id "unit-c" 'name "unit" 'checked "checked"})
                                       (h/label {'for "unit-c"}
                                                "Celsius"))
                                (h/div (h/input {'type "radio" 'id "unit-f" 'name "unit" 'checked "checked" 'onclick "updateOutput();"})
@@ -44,4 +44,8 @@
 (map (dom/get-element-by-id "sandbox")
      (fn [sandbox]
        (dom/set-style-attribute sandbox "display" "block")
+       (map (dom/get-element-by-id "unit-c")
+            (fn [node]
+              (dom/set-event-handler node "click" (fn []
+                                                    (updateOutput)))))
        (dom/inner-html sandbox (doc/html-str form))))
