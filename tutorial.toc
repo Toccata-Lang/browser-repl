@@ -132,7 +132,7 @@ now yuo can recognize Toccata expressions to type in.
 
   (maybe 7)
 
-You can get the value inside out using 'extract'
+You can get the value inside using 'extract'
 
   (extract (maybe 7))
 
@@ -291,7 +291,300 @@ HTML and create an internal data structure and display. Then we can use the func
 module to modify those nodes if we want to change them further.
 
 With the basics in hand, let's finally do that Tic-Tac-Toe game we mentioned..
+
+But first, let's get a fresh start. Reload this page and we'll continue.
 "
            "
+Let's start by thinking about TicTacToe. You probably know that it's a game where there are 9
+squares in a 3x3 grid. Two players take turns marking X's and O's in empty squares until one
+manages to get 3 squares in a line that contain their mark or all the squares are filled.
+"
+           "
+So we're going to need a way to draw the grid of squares. Since each square is the same, we'll
+write a function to create a single square and call it 9 times. Type this expression in.
+
+  (defn square-view [square-num]
+    (-> (h/button)
+        (h/attr \"id\" (str \"square\" square-num))
+        (h/attr \"type\" \"button\")
+        (c/background-color (c/hex-color \"fff\"))
+        (c/border-width (c/px 1))
+        (c/border-style c/solid)
+        (c/border-color (c/hex-color \"999\"))
+        (c/float c/left)
+        (c/font-size (c/px 24))
+        (c/font-weight c/bold)
+        (c/line-height (c/px 34))
+        (c/height (c/px 34))
+        (c/margin-right (c/px -1))
+        (c/margin-top (c/px -1))
+        (c/padding (c/px 0))
+        (c/text-align c/center)
+        (c/width (c/px 34))))
+
+This creates an HTML button using 'h/button' and then adds a bunch of CSS styling to make
+it look nice. There's also one attribute at the top that's important, the 'id' attribute.
+This attribute let's us distinguish between the 9 squares on the board. Each square gets a
+unique ID based on 'square-num'. Now do:
+
+  (dom/inner-html sandbox (doc/html-str (square-view 10)))
+
+A square should appear in the upper left corner of the sandbox.
+"
+           "
+The next thing we need is to make one row of the board out of three squares:
+
+  (defn row-view [start]
+    (h/div (square-view start)
+           (square-view (+ start 1))
+           (square-view (+ start 2))))
+
+This creates an HTML Div element that contains three squares whose ID's begin at 'start'.
+By default, a div will display it's contents horizontally across the page, which is what
+we want. So no additional CSS attributes are needed.
+
+Make sure it works.
+
+  (dom/inner-html sandbox (doc/html-str (row-view 10)))
+
+Did you get what you expected?
+"
+           "
+And now use 'row-view' to create the full board.
+
+  (def board-view
+    (-> (h/div (row-view 0)
+               (row-view 3)
+               (row-view 6))
+        (c/display c/flex)
+        (c/flex-direction c/column)))
+
+Notice that this isn't a function. It's a value that gets created immediately. It's another
+div. Except this time, we want the three rows to be stacked vertically, so add some CSS to
+do that. And let's see our board.
+
+  (dom/inner-html sandbox (doc/html-str board-view))
+"
+           "
+We need one final piece. It would be a pain to have to study the board to see who's turn
+it is, we let's add an element to tell us that.
+
+  (def game-view
+    (h/div (h/div (-> \"Next Player: X\"
+                      (h/attr \"id\" \"status\")
+                      (c/font-size (c/px 24))
+                      (c/font-weight c/bold)))
+           board-view))
+
+And gaze upon our creation
+
+  (dom/inner-html sandbox (doc/html-str game-view))
+"
+           "
+You might have noticed that the names of all those definitions ended in \"-view\". In
+Graphical User Interfaces (GUI's), the part of the code that creates what the user sees
+is called the 'view'. We've just defined the various pieces of our view. Now we move on to
+the next piece of our TicTacToe app.
+
+One of the more critical parts of writing an app is deciding how to store the data we're
+working with. Every app has a domain that it applies to, in our case the game TicTacToe.
+The data reprents this domain. It's a model of the domain. So we call it the 'model'. The
+model will change over time as our app handles events (which we'll talk about later). As
+each event is handled, it causes the model to change through a succession of values. The
+of the model at one particular time is called the 'state' of the app. So the model is a
+place where successive state values are stored. Each time the model changes state, the
+view may need to be updated.
+
+In the domain of the TicTacToe game, we have two pieces of state we need to keep track of.
+Obviously, the board is one. The second is the player whose turn it is.
+"
+           "
+Since each player can be identified by the mark they put on the board, the player whose
+turn it is will be either the string \"X\" or the string \"O\". Now we just need a place
+to put them.
+
+Every 'def' expression we've seen so far has only defined values; a function or some other
+kind of value. What we need is a 'place' value that will hold a string (or any kind of
+value, for that matter). Toccata just such a type of value, an Agent. So let's create one.
+
+  (def curr-player (agent \"X\")) 
+
+You can get the value currently in the agent using 'extract'.
+
+  (extract curr-player)
+
+If you remember, we used 'extract' to also get the value from inside a Maybe. So this same
+function works on both Agents and Maybes. But it's not actually the same function. It's
+two different ones that are called by the same name and one or the other is chosen to run
+based on the type of the argument.
+"
+           "
+The obvious question to be answered is how to change the value inside an Agent. We can't
+do it directly, but we can 'send' the Agent a function that it will use to change the value
+it holds. It does this by calling the function we send it with the value it currently holds
+and keeping the function's result.
+
+So let's send it a function that ignores it's argument and always returns an \"O\".
+
+  (defn always-O [_]
+    \"O\")
+
+First, let's try it out, just to make sure.
+
+  (always-O 71)
+
+Now let's send it to the Agent
+
+  (send curr-player always-O)
+
+  (extract curr-player)
+"
+           "
+What we really need is a function that returns an \"X\" when given an \"O\" and vice versa.
+Let's write that and then I'll explain all the pieces.
+
+  (defn next-player [curr-player]
+    (either (and (= \"X\" curr-player)
+                 (maybe \"O\"))
+            \"X\"))
+
+That may look a little complicated, but we'll take it one step at a time. As usual, we'll
+start from the inside and work out. The '(maybe \"O\")' expression we've seen before. It
+creates a Maybe value with an \"O\" inside. Now enter this expression:
+
+  (= \"X\" \"O\")
+
+You see it return 'nothing' because those two strings aren't the same. But now do
+
+  (= \"X\" \"X\")
+
+and you get a '(maybe \"X\")' value. So if two (or more) values are the same, the '='
+returns a Maybe value with one of those value (the first one, actually) inside. But
+if they're different, it returns 'nothing'.
+"
+           "
+An 'and' expression has any number of expressions inside it. If any of the inner
+expressions evaluate to 'nothing', the 'and' expression also evaluates to 'nothing'.
+But if all the inner expressions evaluate to Maybe's with values inside them, the
+outer 'and' expression evaluates to the value of the last one. Here are a couple of
+examples
+
+  (and (= \"X\" \"X\")
+       (maybe \"O\"))
+
+  (and (= \"X\" \"O\")
+       (maybe \"O\"))
+
+  (and (= \"X\" \"\")
+       (maybe \"O\"))
+
+There's also an 'or' expression you should know about. Try the above expressions
+replacing the 'and' with 'or'.
+"
+           "
+As a reminder, this is the function we're looking at. No need to type it in again.
+
+  (defn next-player [curr-player]
+    (either (and (= \"X\" curr-player)
+                 (maybe \"O\"))
+            \"X\"))
+
+and the 'either' expression is up next, best explained with two examples.
+
+  (either (maybe \"X\")
+          \"O\")
+
+  (either nothing
+          \"O\")
+
+When the first expression in an 'either' evaluates to a Maybe with something in it,
+that inner value is extracted and becomes the result. But if the first value is
+'nothing' (an empty Maybe value), the second expression does. So what we have in
+this function is an expression that returns a \"O\" if 'curr-player' is \"X\" and
+an \"X\" otherwise.
+
+For you programmers, I know this is just an 'if' expression. Not having one was an
+experiment and adding one is top of my priority list. 
+"
+           "
+Let's try out this function. Enter these expressions.
+
+  (next-player \"O\")
+
+  (next-player \"X\")
+
+  (next-player 77)
+
+So now, we can toggle the player back and forth. Type in this expression a couple
+of times and call 'extract' on the agent as well.
+
+  (send curr-player next-player)
+"
+           "
+We have one piece of state in our model and now we need to add the second. The board.
+
+The current player was a single string. For the board, we need to keep track of 9
+strings. One for each square on the board. We've seen Maybe and Agent values can
+hold another value, but what we need is a value that can hold more than one. In
+Toccata, there are two. We're going to use one called Vector. Type in the following
+
+  (def empty-board ["" "" ""
+                    "" "" ""
+                    "" "" ""])
+
+The square brackets are how we indicate that we want all the values between them to
+be part of the vector. In this case, 9 empty strings. Let's see what this looks like
+
+  empty-board
+
+You'll see that it displays 9 commas between square brackets on a single line. The
+line breaks don't matter when writing a vector and empty strings don't get displayed
+at all. We left out the commas when writing the vector because their just noise, but
+when the vector is displayed, they help us know where the values are.
+"
+                    "
+Among others, the Vector has one important feature that we need. You can put things
+in and take things out using a number as an index. Type this
+
+  (store empty-board 2 \"X\")
+
+You'll see that returned a Maybe value with a vector inside. If the index number had
+been too large (or negative), the 'store' would have failed. Try this
+
+  (store empty-board 15 \"nope\")
+
+Also, store does not change 'empty-board' it creates a new vector and replaces the
+value at the index with the new value. Look at 'empty-board' again
+
+  empty-board
+"
+                    "
+Since we can't change 'empty-board', what we need is a place to store the board
+part of our model. So ...
+
+  (def board (agent empty-board))
+
+And now, we can tell the agent to update it's value
+
+  (send board (fn [board-value]
+                (either (store board-value 1 \"X\")
+                        board-value)))
+
+Here, we didn't bother to define a named function, we created one on the fly and
+left it unnamed, or anonymous. And since the 'store' function returns a Maybe
+and might fail, we used an 'either' to get the new board value if it succeeds
+or just use the old one if it fails.
+
+You'll notice I've spend a lot of time talking about what to do if something
+fails. At most, half of your programming effort will be writing the \"happy 
+path\" code. The rest will be trying to see what might go wrong and dealing
+with that.
+
+Do an 'extract' on the board agent and see what's in there. You'll notice
+that for an index of 1, the value actually ended up in the second position.
+All programmers start counting at 0, so the first position is index 0.
+"
+                    "
 "
            ])
+

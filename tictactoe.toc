@@ -20,15 +20,15 @@
       (c/text-align c/center)
       (c/width (c/px 34))))
 
-(defn row [start]
+(defn row-view [start]
   (h/div (square-view start)
          (square-view (+ start 1))
          (square-view (+ start 2))))
 
 (def board-view
-  (-> (h/div (row 0)
-             (row 3)
-             (row 6))
+  (-> (h/div (row-view 0)
+             (row-view 3)
+             (row-view 6))
       (c/display c/flex)
       (c/flex-direction c/column)))
 
@@ -104,3 +104,13 @@
               (dom/handle-event square-node
                                 "click" (fn []
                                           (send curr-player set-square square-node square-num)))))))
+
+(defn always-O [_]
+  "O")
+
+(and (= "X" "X")
+     (maybe "O"))
+
+(send board (fn [board-value]
+              (either (store board-value 1 "X")
+                      board-value)))
