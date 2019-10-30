@@ -73,44 +73,43 @@
            (is-winner board 2 4 6))
        (maybe board)))
 
-(defn update-board [board curr-player square-node square-num]
-  (either (flat-map (store board square-num curr-player)
-                    (fn [new-board]
-                      (or (check-winner board)
-                          (do
-                            (dom/inner-html square-node curr-player)
-                            (map (dom/get-element-by-id "status")
-                                 (fn [status-node]
-                                   (let [new-status (either (and (check-winner new-board)
-                                                                 (maybe (str "Winner: " curr-player)))
-                                                            (str "Next Player: " (next-player curr-player)))]
-                                     (dom/inner-html status-node new-status)
-                                     new-board)))))))
-          board))
+(defn update-board [board curr-player square-num]
+  (let [new-board? (store board square-num curr-player)
+        status? (dom/get-element-by-id "status")
+        square? (dom/get-element-by-id (str "square" square-num))]
+    (either (and new-board? 
+                 status?
+                 (let [new-board (extract new-board?)
+                       status-node (extract status?)
+                       square-node (extract square?)
+                       new-status (either (and (check-winner new-board)
+                                               (maybe (str "Winner: " curr-player)))
+                                          (str "Next Player: " (next-player curr-player)))]
+                   (dom/inner-html square-node curr-player)
+                   (dom/inner-html status-node new-status)
+                   (maybe new-board)))
+            board)))
 
-(defn set-square [curr-player square-node square-num]
-  (send board update-board curr-player square-node square-num)
-  (next-player curr-player))
+(defn set-square [curr-player square-num]
+  (let [board-state (extract board)
+        square-state (either (get board-state square-num) "")]
+    (either (and (or (check-winner board-state)
+                     (= "X" square-state)
+                     (= "O" square-state))
+                 (maybe curr-player))
+            (do
+              (send board update-board curr-player square-num)
+              (next-player curr-player)))))
 
 ;; Initialization
 
-(dom/set-style-attribute sandbox "display" "block")
 (dom/inner-html sandbox (doc/html-str game-view))
 
-(map (range 9)
-     (fn [square-num]
-       (map (dom/get-element-by-id (str "square" square-num))
-            (fn [square-node]
-              (dom/handle-event square-node
-                                "click" (fn []
-                                          (send curr-player set-square square-node square-num)))))))
+(defn attach-handler [square-num]
+  (let [square? (dom/get-element-by-id (str "square" square-num))]
+    (and square?
+         (dom/handle-event (extract square?)
+                           "click" (fn []
+                                     (send curr-player set-square square-num))))))
 
-(defn always-O [_]
-  "O")
-
-(and (= "X" "X")
-     (maybe "O"))
-
-(send board (fn [board-value]
-              (either (store board-value 1 "X")
-                      board-value)))
+(map (range 9) attache-handler)

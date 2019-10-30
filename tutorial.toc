@@ -585,6 +585,234 @@ that for an index of 1, the value actually ended up in the second position.
 All programmers start counting at 0, so the first position is index 0.
 "
                     "
+We put a Vector in an Agent and then put a String in the Vector in the Agent.
+How about we get something out? First, let's create a Vector with some values
+in it and get one out. Type these in one at a time.
+
+  (def v [1 2 3])
+
+  (get v 0)
+  (get v 2)
+  (get v 3)
+
+As you can see, the 'get' function can fail just like the 'store' function so
+it also returns a Maybe value.
+
+The way this is typically used is with an 'either'
+
+  (either (get v 1) 0)
+  (either (get v 17) 0)
+"
+                    "
+There's really only one other major piece we need (and a couple of minor ones)
+to finish our TicTacToe game.
+
+We've built our View which generates some HTML. We specified our Model and
+created two Agents to hold it. We now need some functions to update the model
+and use the new state of the model to update the view. This set of functions
+is called the Controller. These three pieces (Model, View, Controller) are
+how most GUI software is architected. This is the MVC architecture.
+
+But once we write our controller functions, how do the get called? That's
+where events come in. As the user does things to the view in the browser,
+the browser generates events which the controller handles and updates the
+model and then updates the view. And the user interacts with the new view
+creating new events and cycle completes.
+"
+                    "
+How do we tell the browser what functions for which events? That's the final
+major piece. The only event we'll be is the \"click\" on the squares of the
+board. As you might expect, this event gets triggered when the players click
+on a square.
+
+So let's get a single square in the sandbox to work with.
+
+  (dom/inner-html sandbox (doc/html-str (square-view 0)))
+
+Now, let's find that square, so we can work with it
+
+  (def sqr0 (either (dom/get-element-by-id \"square0\") \"not found\"))
+
+Did we get id?
+
+  sqr0
+
+You should see \"<DOMNode>\" and not \"not found\".
+"
+                    "
+Since 'sqr0' is empty, let's create a function that puts some text in it.
+
+  (defn insert-X []
+    (dom/inner-html sqr0 \"X\"))
+
+Don't execute it just yet. Instead, we want to tell the browser to call
+it when 'sqr0' is clicked.
+
+  (dom/handle-event sqr0 \"click\" insert-X)
+
+And now, click on the square. Hopefully, an 'X' appeared. Clicking the square
+again has no visible effect, since there's already an 'X' in there. What we
+need is to see what's in the square and use 'next-player' to get the new
+value to insert. And instead of using a named function, we'll use an
+anonymouse one. But first, we want a new square that doesn't have any 
+event handlers attached.
+
+  (dom/inner-html sandbox (doc/html-str (square-view 1)))
+  (def sqr1 (either (dom/get-element-by-id \"square1\") \"not found\"))
+"
+                    "
+Now let's add that toggling event handler
+
+  (dom/handle-event sqr1 \"click\"
+                    (fn []
+                      (let [old (dom/inner-html sqr1)
+                            new (next-player old)]
+                        (dom/inner-html sqr1 new))))
+
+I've introduced the 'let' expression. Hopefully, it's pretty clear how it
+works. The results of expressions are bound to 'old' and 'new'. And 'new'
+is then used in the body of the 'let' to update the square. Also notice
+that to get the old inner HTML, I used 'dom/inner-html' but only gave it
+one argument, the DOM element to get the HTML from.
+
+The 'let' expression could have been written as a nested expression like
+this
+
+  (dom/inner-html sqr1 (next-player (dom/inner-html sqr1)))
+
+and if you type that in, you'll see the contents of the square change.
+"
+                    "
+With the last piece in hand, we can move ahead implementing the controller
+of our app. We already have the first function of it, 'next-player'. We
+also need to check when someone wins a game. These two functions do that.
+
+  (defn is-winner [board a b c]
+    (let [squares [(either (get board a) \"\")
+                   (either (get board b) \"\")
+                   (either (get board c) \"\")]]
+      (or (= squares [\"X\" \"X\" \"X\"])
+          (= squares [\"O\" \"O\" \"O\"]))))
+  
+  (defn check-winner [board]
+    (and (or (is-winner board 0 1 2)
+             (is-winner board 3 4 5)
+             (is-winner board 6 7 8)
+             (is-winner board 0 3 6)
+             (is-winner board 1 4 7)
+             (is-winner board 2 5 8)
+             (is-winner board 0 4 8)
+             (is-winner board 2 4 6))
+         (maybe board)))
+
+Hopefully, you can read these and understand what's going on, so I'll
+skip the commentary.
+"
+                    "
+Now we come to the heart of the controller. The next two functions update
+each of our two agents in our model and update the view as needed. First,
+we need a function that does the following given the current board, a
+square number to update and the mark of the player to put there.
+
+ - Store the mark in the proper position on the board
+ - See if there is a winner
+ - If so, update the status view with the \"Winner\" status
+ - If not, update the status view \"Next player:\" status
+ - Update the board view with the new mark placed in it's square
+ - Return an updated board state to the agent
+
+The function is on the next page. It's longer than we seen so far, but
+there's no new elements in it. This typical of programming. Mostly we
+just combine a relatively small number pieces into larger and larger
+constructs until we get the software we need. Theoretically.
+"
+                    "
+(defn update-board [board curr-player square-num]
+  (let [new-board? (store board square-num curr-player)
+        status? (dom/get-element-by-id \"status\")
+        square? (dom/get-element-by-id (str \"square\" square-num))]
+    (either (and new-board? 
+                 status?
+                 (let [new-board (extract new-board?)
+                       status-node (extract status?)
+                       square-node (extract square?)
+                       new-status (either (and (check-winner new-board)
+                                               (maybe (str \"Winner: \"
+                                                           curr-player)))
+                                          (str \"Next Player: \"
+                                               (next-player curr-player)))]
+                   (dom/inner-html square-node curr-player)
+                   (dom/inner-html status-node new-status)
+                   (maybe new-board)))
+            board)))
+
+Go ahead and type that in. There are ways to write this so that it's
+shorter. But that would need me to explain other concepts and I figure
+this is long enough as is. We're almost done.
+"
+                    "
+Now we need a function that will send this function to the board agent. But
+it also needs to do:
+
+ - Check the current board state for a winner and do nothing if so
+ - Also see if the desired square already has a mark and do nothing if so
+ - Otherwise, send 'update-board' to the board agent
+ - Update the current player agent with tne other player
+
+Here it is:
+
+  (defn set-square [curr-player square-num]
+    (let [board-state (extract board)
+          square-state (either (get board-state square-num) \"\")]
+      (either (and (or (check-winner board-state)
+                       (= \"X\" square-state)
+                       (= \"O\" square-state))
+                   (maybe curr-player))
+              (do
+                (send board update-board curr-player square-num)
+                (next-player curr-player)))))
+
+The 'do' is the only new element. It evaluates all it's inner expressions
+and the value of the last one is the value the over all expression returns.
+"
+                    "
+That's almost all the code for our game. So now we need to initialize the view
+and hookup the \"click\" event handlers for all the squares. The first is easy:
+
+  (dom/inner-html sandbox (doc/html-str game-view))
+
+The second needs some explaining. For each square, we have to create an
+event handler and attach it to the square. So let's write a function for
+that:
+
+(defn attach-handler [square-num]
+  (let [square? (dom/get-element-by-id (str \"square\" square-num))]
+    (and square?
+         (dom/handle-event (extract square?)
+                           \"click\" (fn []
+                                       (send curr-player set-square square-num))))))
+
+"
+                    "
+The last task is to attach \"click\" handlers to each square. We'll do it with brute
+force. Feel free to copy and paste these expressions.
+
+  (attach-handler 0)
+  (attach-handler 1)
+  (attach-handler 2)
+  (attach-handler 3)
+  (attach-handler 4)
+  (attach-handler 5)
+  (attach-handler 6)
+  (attach-handler 7)
+  (attach-handler 8)
+
+And now you can play a game of TicTacToe.
+
+This tutorial was just the beginning. There's loads more features of Toccata to
+make building web apps, phone apps and native executables easily and quickly.
+
+Keep an eye on the Tutorials page for more and follow @toccata_lang on Twitter.
 "
            ])
 
