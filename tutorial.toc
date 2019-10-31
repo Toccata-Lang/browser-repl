@@ -1,15 +1,13 @@
 (def text ["
-Welcome to Toccata!
-
 This tutorial is intended to get you up to speed and doing something useful as quickly
-as possible. So let's get right to. First thing is how to navigate it. Holding the 'Control'
-or 'Ctrl' down while pressing the 'N' or 'p' keys will move bring up the next or previous
-message. Go ahead and move to the next message."
+as possible. So let's get right to it. First thing is how to navigate. Holding the 'Alt'
+(or 'Option' on a Mac) key down while pressing the 'N' or 'P' keys will move to the
+next or previous message respectively. Go ahead and move to the next message."
            "
 You made the jump.
 
-Toccata is a programming language that you can use to write all kinds of software in. It
-fall in the category of general programming languages. You'll be typing Toccata expressions
+Toccata is a programming language that you can use to write all kinds of software. It
+falls in the category of general programming languages. You'll be typing Toccata expressions
 in the box below. These expressions wil be interpreted and the expression and the results
 will added to this box. You can type any expression at anytime. And this tutorial will teach
 you what to type.
@@ -18,6 +16,8 @@ One other note. Programming is full of jargon and we keep inventing more as we g
 us programmers communicate with each other more easily but sounds like gibberish to
 non-programmers. I'll try to define each term I use as we go along, so you may want to 
 write down each term in a notebook. You'll be surprised how fast you'll pick it up.
+
+Programming is not easy, but anyone can do it with hard work. That means you.
 
 We're eventually going to write a Tic-Tac-Toe game for the web. But we've got a ways to go.
 If you're an experienced programmer, you can probably skip most of the explanations and just
@@ -28,13 +28,13 @@ First of all are integers. Type the following number expression
   73724"
              "
 The '=>' shows you what the result was. You can type any number you want. The next simple
-expression is what's commonly called a string. There are signified by double-quote \".
+expression is what's commonly called a string. These are signified by double-quotes \".
 
 Type this line, double-quotes and all.
 
   \"a string of characters\"
   
-Each letter is a character. Digits and punctuation are characters as well. And so are so called
+Each letter is a character. Digits and punctuation are characters as well. And so are 
 'whitespace' characters like spaces and newlines. I'll try keep these expressions reasonable,
 but I strongly urge you to type them in and not copy/paste them. Something happens in your
 brain as you type them that will make your progress much faster. So type in the following
@@ -46,7 +46,7 @@ You should see '=> Howdy folks'. The expression is enclosed in parentheses meani
 a call to a function. 'str' is a function that takes any number of values (in this case three
 strings), converts them all to strings and then combines those into one long string. Functions 
 are how we do things in programming. It's all about writing functions that call other functions
-to get stuff done."
+to get stuff done. "
            "
 So let's write a function. Type this expression
 
@@ -63,7 +63,7 @@ Now you can call this function (also called 'running the function') like this.
 
   (hi-there \"Frankie\")
 
-And now you can call 'hi-there' as many times as you like with different strings as arguments.
+Now you can call 'hi-there' as many times as you like with different strings as arguments.
 Also try passing an integer to it and see what happens."
            "
 By the way, all of this happening in your browser, nothing is being sent to the server to execute.
@@ -85,22 +85,22 @@ Let's do something with integers. Type the following expression
 
   (+ 3 881 12)
 
-And now you can add numbers. Try some other common arithmetic functions like -, *. You'll notice
-there's no '/' function. That's because there's two parts. The first is 'div' and second is 'mod'
-experiment with each of those a couple of times. If you happen to try to divide by 0, you won't
-get any result because the system crashes. :)"
+And now you can add numbers. Try some other common arithmetic functions like -, *. There's no '/'
+function. That's because there's two parts. The first is 'div' and second is 'mod'experiment with
+each of those a couple of times. If you try to divide by 0, you won't get any result
+because the system crashes. :)"
            "
-And now we jump into the deep end. :)
+And now we jump into the deep end.
 
 You're reading and interacting with a web page in your browser. You can see see the raw source
-in most browsers by hitting ctrl-u. What you see is the file your browser downloaded from the
+in most browsers by typing Ctrl-u. What you see is the file your browser downloaded from the
 Toccata web site. It's written in a language called HTML. Your browser interprets that file
 to create an internal representation which it then uses to show it to you.
 
 Here's the point, you can use Toccata functions to look at, and change, this internal data
 structure and cause the browser to display *anything*. This web page has a place for us to
-experiment with HTML. It's currently invisible. So let's find it and make it visible. We'll do
-this in several steps because there's a lot to explain."
+experiment with HTML. It's over there to the right. So let's find it so we can do stuff
+to it."
            "
 First we find it. Type this expression
 
@@ -110,9 +110,9 @@ Not every function can be in the core library. 'get-element-by-id' is in a libra
 of other functions. When calling these functions, we prefix their name with \"dom/\". We'll see
 other libraries very soon.
 
-In the browser, a web page is called a document and it's internal representation called the DOM
-which stands for Document Object Model because the web page document is a collection of page
-objects. So the name of the Toccata library to work with these document objects is 'dom'.
+In the browser, a web page is called a document and its internal representation is called the
+DOM which stands for Document Object Model because the web page document is a collection of
+page objects. So the name of the Toccata library to work with these document objects is 'dom'.
 
 The document objects are also called elements (and as we'll see in a second, nodes). So this
 function searches through all the document elements to find the one with an ID of 'sandbox'.
@@ -122,7 +122,7 @@ Try this next line and compare. Notice we drop the 'o' from 'sandbox'.
 
   (dom/get-element-by-id \"sandbx\")
  
-What's this 'maybe' / 'nothing' stuff. That requires a tangent."
+What's this 'maybe' / 'nothing' stuff? That requires a tangent."
            "
 In addition to integers and strings, Toccata has other kinds of values. Each of these kinds
 of values is called a 'type'. Integers are a type and strings are a type. There's another
@@ -173,28 +173,26 @@ with no name.) And now, make sure 'sandbox' is what we expect.
 
 And it should print '=> <DOMNode>' as the result."
            "
-Now that we have our sandbox node, we can make it visible. The HTML language I mentioned
+Now that we have our sandbox node, we can put stuff in it. The HTML language I mentioned
 earlier is how the structure of web pages are specified. It stands for HyperText Markup Language.
 But HTML doesn't say much if anything about how the elements should be displayed. That falls to
 another language call CSS which stands for Cascading Style Sheets. Each element/node has various
-style attributes to control if and how an element is displayed. So, type this expression
-
-  (dom/set-style-attribute sandbox \"display\" \"block\")
-
-and the sandbox should appear.
-
-Now that we can see it, we see the text 'sandbox' in it. To see why, do
+style attributes to control if and how an element is displayed."
+           "
+Now type the following
 
   (dom/inner-html sandbox)
 
-Every node can contain other nodes. It's the parent and the nodes it contains are its children.
+Every node can contain other nodes. It is the parent and the nodes it contains are its children.
 The browser can convert these child nodes to a string of HTML code and that's what 'inner-html'
 does. In this case, we see the string \"sandbox\" is the inner HTML.
 
 And finally, let's set the inner HTML to something.
 
-  (dom/inner-html \"Howdy, folks\")
-"
+  (dom/inner-html sandbox \"Howdy, folks\")
+
+We use the same function get both get the inner HTML and set the inner HTML of a node depending
+on how many parameters we call it with."
            "
 So just banging some text into the sandbox causes it to show up. But let's do something a little
 more interesting.
@@ -215,7 +213,7 @@ Toccata has ways to make this easier though. First, let's create a little functi
 typing.
 
   (defn try-html [s]
-    (dom/inner-html sandbox s))
+    (dom/inner-html sandbox (doc/html-str s)))
 
 and use it
 
@@ -242,41 +240,37 @@ into an HTML string.
 
 And then we see what that looks like in the sandbox
 
-  (try-html (doc/html-str spn))
+  (try-html spn)
 
 Using the CSS functions to add a little color.
 
-  (try-html (doc/html-str (c/color spn c/blue)))
-"
+  (try-html (c/color spn c/blue)) "
            "
 For reference from the last step, we had
 
-  (try-html (doc/html-str (c/color spn c/blue)))
+  (try-html (c/color spn c/blue))
 
 You can see that to understand this expression, we have to find the innermost expression, read it
 and then work our way out. This is fine for the computer, but less so for us humans. So there's a
 different way to write this.
 
-  (-> spn (c/color c/blue) (doc/html-str) (try-html))
+  (-> spn (c/color c/purple) (try-html))
 
 Or split it across multiple lines
 
   (-> spn
-      (c/color c/blue)
-      doc/html-str
+      (c/color c/red)
       try-html)
 
 This let's us see how the results of one expression becomes the input to the next. This is called
-'threading' since the data is threaded through each expression. The parentheses are optional if
-an expression just has a function to call with no additional arguments.
-"
+'threading' since the data is threaded through the first position of each successive expression. The
+parentheses are optional if an expression just has a function to call with no additional arguments. "
            "
 Now try this
 
   (-> spn
       (c/color c/red)
-      (c/font-size (c/px 18))
-      doc/html-str
+      (c/font-size (c/px 22))
       try-html)
 
 There are functions in the HTML and CSS namespaces to fully specify any web page you care to
@@ -284,24 +278,20 @@ construct. Knowing how to use them requires knowing what you want to construct. 
 the 'font-size' function sets the size of the characters of the text in the span. In this case
 it's specified in pixels using the 'px' function.
 
-To recap; we use the funcitons in the HTML and CSS modules to create a Toccata data structure that
-describes our web page. Then we use the 'html-str' function to convert that into an HTML string.
-Then we use the 'try-html' function (which uses 'inner-html') to tell the browser to interpret our
-HTML and create an internal data structure and display. Then we can use the functions from the DOM
-module to modify those nodes if we want to change them further.
+To recap; we use the functions in the HTML and CSS modules to create a Toccata data structure that
+describes our web page. Then we use the 'try-html' function (which uses 'inner-html') to tell the
+browser to interpret our HTML and create an internal data structure and display. Then we can use
+the functions from the DOM module to modify those nodes if we want to change them further.
 
-With the basics in hand, let's finally do that Tic-Tac-Toe game we mentioned..
-
-But first, let's get a fresh start. Reload this page and we'll continue.
-"
+With the basics in hand, let's finally do that Tic-Tac-Toe game we mentioned..."
            "
 Let's start by thinking about TicTacToe. You probably know that it's a game where there are 9
 squares in a 3x3 grid. Two players take turns marking X's and O's in empty squares until one
-manages to get 3 squares in a line that contain their mark or all the squares are filled.
-"
+manages to get 3 squares in a line that contain their mark or all the squares are filled. "
            "
 So we're going to need a way to draw the grid of squares. Since each square is the same, we'll
 write a function to create a single square and call it 9 times. Type this expression in.
+(this one is ok to copy and paste)
 
   (defn square-view [square-num]
     (-> (h/button)
@@ -327,10 +317,9 @@ it look nice. There's also one attribute at the top that's important, the 'id' a
 This attribute let's us distinguish between the 9 squares on the board. Each square gets a
 unique ID based on 'square-num'. Now do:
 
-  (dom/inner-html sandbox (doc/html-str (square-view 10)))
+  (try-html (square-view 10))
 
-A square should appear in the upper left corner of the sandbox.
-"
+A square should appear in the upper left corner of the sandbox. "
            "
 The next thing we need is to make one row of the board out of three squares:
 
@@ -345,10 +334,9 @@ we want. So no additional CSS attributes are needed.
 
 Make sure it works.
 
-  (dom/inner-html sandbox (doc/html-str (row-view 10)))
+  (try-html (row-view 10))
 
-Did you get what you expected?
-"
+Did you get what you expected? "
            "
 And now use 'row-view' to create the full board.
 
@@ -363,11 +351,10 @@ Notice that this isn't a function. It's a value that gets created immediately. I
 div. Except this time, we want the three rows to be stacked vertically, so add some CSS to
 do that. And let's see our board.
 
-  (dom/inner-html sandbox (doc/html-str board-view))
-"
+  (try-html board-view) "
            "
 We need one final piece. It would be a pain to have to study the board to see who's turn
-it is, we let's add an element to tell us that.
+it is, so let's add an element to tell us that.
 
   (def game-view
     (h/div (h/div (-> \"Next Player: X\"
@@ -378,8 +365,7 @@ it is, we let's add an element to tell us that.
 
 And gaze upon our creation
 
-  (dom/inner-html sandbox (doc/html-str game-view))
-"
+  (try-html game-view) "
            "
 You might have noticed that the names of all those definitions ended in \"-view\". In
 Graphical User Interfaces (GUI's), the part of the code that creates what the user sees
@@ -391,13 +377,12 @@ working with. Every app has a domain that it applies to, in our case the game Ti
 The data reprents this domain. It's a model of the domain. So we call it the 'model'. The
 model will change over time as our app handles events (which we'll talk about later). As
 each event is handled, it causes the model to change through a succession of values. The
-of the model at one particular time is called the 'state' of the app. So the model is a
-place where successive state values are stored. Each time the model changes state, the
-view may need to be updated.
+value of the model at one particular time is called the 'state' of the app. So the model
+is a place where successive state values are stored. Each time the model changes state,
+the view may need to be updated.
 
 In the domain of the TicTacToe game, we have two pieces of state we need to keep track of.
-Obviously, the board is one. The second is the player whose turn it is.
-"
+Obviously, the board is one. The second is the player whose turn it is. "
            "
 Since each player can be identified by the mark they put on the board, the player whose
 turn it is will be either the string \"X\" or the string \"O\". Now we just need a place
@@ -405,7 +390,8 @@ to put them.
 
 Every 'def' expression we've seen so far has only defined values; a function or some other
 kind of value. What we need is a 'place' value that will hold a string (or any kind of
-value, for that matter). Toccata just such a type of value, an Agent. So let's create one.
+value, for that matter). Toccata has just such a type of value, an Agent. So let's create
+one.
 
   (def curr-player (agent \"X\")) 
 
@@ -416,8 +402,7 @@ You can get the value currently in the agent using 'extract'.
 If you remember, we used 'extract' to also get the value from inside a Maybe. So this same
 function works on both Agents and Maybes. But it's not actually the same function. It's
 two different ones that are called by the same name and one or the other is chosen to run
-based on the type of the argument.
-"
+based on the type of the argument. "
            "
 The obvious question to be answered is how to change the value inside an Agent. We can't
 do it directly, but we can 'send' the Agent a function that it will use to change the value
@@ -437,8 +422,7 @@ Now let's send it to the Agent
 
   (send curr-player always-O)
 
-  (extract curr-player)
-"
+  (extract curr-player) "
            "
 What we really need is a function that returns an \"X\" when given an \"O\" and vice versa.
 Let's write that and then I'll explain all the pieces.
@@ -458,10 +442,9 @@ You see it return 'nothing' because those two strings aren't the same. But now d
 
   (= \"X\" \"X\")
 
-and you get a '(maybe \"X\")' value. So if two (or more) values are the same, the '='
+and you get a '(maybe X)' value. So if two (or more) values are the same, '='
 returns a Maybe value with one of those value (the first one, actually) inside. But
-if they're different, it returns 'nothing'.
-"
+if they're different, it returns 'nothing'. "
            "
 An 'and' expression has any number of expressions inside it. If any of the inner
 expressions evaluate to 'nothing', the 'and' expression also evaluates to 'nothing'.
@@ -479,8 +462,7 @@ examples
        (maybe \"O\"))
 
 There's also an 'or' expression you should know about. Try the above expressions
-replacing the 'and' with 'or'.
-"
+replacing the 'and' with 'or'. "
            "
 As a reminder, this is the function we're looking at. No need to type it in again.
 
@@ -504,8 +486,7 @@ this function is an expression that returns a \"O\" if 'curr-player' is \"X\" an
 an \"X\" otherwise.
 
 For you programmers, I know this is just an 'if' expression. Not having one was an
-experiment and adding one is top of my priority list. 
-"
+experiment and adding one is top of my priority list. "
            "
 Let's try out this function. Enter these expressions.
 
@@ -518,8 +499,7 @@ Let's try out this function. Enter these expressions.
 So now, we can toggle the player back and forth. Type in this expression a couple
 of times and call 'extract' on the agent as well.
 
-  (send curr-player next-player)
-"
+  (send curr-player next-player) "
            "
 We have one piece of state in our model and now we need to add the second. The board.
 
@@ -528,9 +508,9 @@ strings. One for each square on the board. We've seen Maybe and Agent values can
 hold another value, but what we need is a value that can hold more than one. In
 Toccata, there are two. We're going to use one called Vector. Type in the following
 
-  (def empty-board ["" "" ""
-                    "" "" ""
-                    "" "" ""])
+  (def empty-board [\"\" \"\" \"\"
+                    \"\" \"\" \"\"
+                    \"\" \"\" \"\"])
 
 The square brackets are how we indicate that we want all the values between them to
 be part of the vector. In this case, 9 empty strings. Let's see what this looks like
@@ -539,9 +519,8 @@ be part of the vector. In this case, 9 empty strings. Let's see what this looks 
 
 You'll see that it displays 9 commas between square brackets on a single line. The
 line breaks don't matter when writing a vector and empty strings don't get displayed
-at all. We left out the commas when writing the vector because their just noise, but
-when the vector is displayed, they help us know where the values are.
-"
+at all. We left out the commas when writing the vector because they're just noise,
+but when the vector is displayed, they help us know where the values are. "
                     "
 Among others, the Vector has one important feature that we need. You can put things
 in and take things out using a number as an index. Type this
@@ -556,8 +535,7 @@ been too large (or negative), the 'store' would have failed. Try this
 Also, store does not change 'empty-board' it creates a new vector and replaces the
 value at the index with the new value. Look at 'empty-board' again
 
-  empty-board
-"
+  empty-board "
                     "
 Since we can't change 'empty-board', what we need is a place to store the board
 part of our model. So ...
@@ -582,8 +560,7 @@ with that.
 
 Do an 'extract' on the board agent and see what's in there. You'll notice
 that for an index of 1, the value actually ended up in the second position.
-All programmers start counting at 0, so the first position is index 0.
-"
+All programmers start counting at 0, so the first position is index 0. "
                     "
 We put a Vector in an Agent and then put a String in the Vector in the Agent.
 How about we get something out? First, let's create a Vector with some values
@@ -601,8 +578,7 @@ it also returns a Maybe value.
 The way this is typically used is with an 'either'
 
   (either (get v 1) 0)
-  (either (get v 17) 0)
-"
+  (either (get v 17) 0) "
                     "
 There's really only one other major piece we need (and a couple of minor ones)
 to finish our TicTacToe game.
@@ -613,21 +589,20 @@ and use the new state of the model to update the view. This set of functions
 is called the Controller. These three pieces (Model, View, Controller) are
 how most GUI software is architected. This is the MVC architecture.
 
-But once we write our controller functions, how do the get called? That's
+But once we write our controller functions, how do they get called? That's
 where events come in. As the user does things to the view in the browser,
 the browser generates events which the controller handles and updates the
 model and then updates the view. And the user interacts with the new view
-creating new events and cycle completes.
-"
+creating new events and the cycle completes. "
                     "
 How do we tell the browser what functions for which events? That's the final
-major piece. The only event we'll be is the \"click\" on the squares of the
+major piece. The only event we'll use is the \"click\" on the squares of the
 board. As you might expect, this event gets triggered when the players click
 on a square.
 
 So let's get a single square in the sandbox to work with.
 
-  (dom/inner-html sandbox (doc/html-str (square-view 0)))
+  (try-html (square-view 0))
 
 Now, let's find that square, so we can work with it
 
@@ -637,8 +612,7 @@ Did we get id?
 
   sqr0
 
-You should see \"<DOMNode>\" and not \"not found\".
-"
+You should see \"<DOMNode>\" and not \"not found\". "
                     "
 Since 'sqr0' is empty, let's create a function that puts some text in it.
 
@@ -657,9 +631,8 @@ value to insert. And instead of using a named function, we'll use an
 anonymouse one. But first, we want a new square that doesn't have any 
 event handlers attached.
 
-  (dom/inner-html sandbox (doc/html-str (square-view 1)))
-  (def sqr1 (either (dom/get-element-by-id \"square1\") \"not found\"))
-"
+  (try-html (square-view 1))
+  (def sqr1 (either (dom/get-element-by-id \"square1\") \"not found\")) "
                     "
 Now let's add that toggling event handler
 
@@ -681,11 +654,15 @@ this
   (dom/inner-html sqr1 (next-player (dom/inner-html sqr1)))
 
 and if you type that in, you'll see the contents of the square change.
-"
+The square will change everytime you type (or past) that expression in.
+And it will also change each time you click it."
                     "
 With the last piece in hand, we can move ahead implementing the controller
 of our app. We already have the first function of it, 'next-player'. We
 also need to check when someone wins a game. These two functions do that.
+Since there's a lot of repitition in these, feel free to copy and paste.
+In fact, you're probably tired of typing. Feel free to copy and paste
+the remaining expressions, but read them carefully.
 
   (defn is-winner [board a b c]
     (let [squares [(either (get board a) \"\")
@@ -706,26 +683,24 @@ also need to check when someone wins a game. These two functions do that.
          (maybe board)))
 
 Hopefully, you can read these and understand what's going on, so I'll
-skip the commentary.
-"
+skip the commentary. "
                     "
 Now we come to the heart of the controller. The next two functions update
 each of our two agents in our model and update the view as needed. First,
-we need a function that does the following given the current board, a
-square number to update and the mark of the player to put there.
+we need a function that does the following; given the current board, a
+square number to update and the mark of the player to put in that square
 
  - Store the mark in the proper position on the board
  - See if there is a winner
  - If so, update the status view with the \"Winner\" status
- - If not, update the status view \"Next player:\" status
- - Update the board view with the new mark placed in it's square
+ - If not, update the status view with \"Next player:\" status
+ - Update the board view with the new mark placed in its square
  - Return an updated board state to the agent
 
-The function is on the next page. It's longer than we seen so far, but
-there's no new elements in it. This typical of programming. Mostly we
+The function is on the next page. It's longer than we've seen so far, but
+there's no new elements in it. This is typical of programming. Mostly we
 just combine a relatively small number pieces into larger and larger
-constructs until we get the software we need. Theoretically.
-"
+constructs until we get the software we need. Theoretically. "
                     "
 (defn update-board [board curr-player square-num]
   (let [new-board? (store board square-num curr-player)
@@ -748,11 +723,10 @@ constructs until we get the software we need. Theoretically.
 
 Go ahead and type that in. There are ways to write this so that it's
 shorter. But that would need me to explain other concepts and I figure
-this is long enough as is. We're almost done.
-"
+this is long enough as is. We're almost done. "
                     "
 Now we need a function that will send this function to the board agent. But
-it also needs to do:
+it also needs to:
 
  - Check the current board state for a winner and do nothing if so
  - Also see if the desired square already has a mark and do nothing if so
@@ -773,13 +747,12 @@ Here it is:
                 (next-player curr-player)))))
 
 The 'do' is the only new element. It evaluates all it's inner expressions
-and the value of the last one is the value the over all expression returns.
-"
+and the value of the last one is the value the over all expression returns. "
                     "
 That's almost all the code for our game. So now we need to initialize the view
 and hookup the \"click\" event handlers for all the squares. The first is easy:
 
-  (dom/inner-html sandbox (doc/html-str game-view))
+  (try-html game-view)
 
 The second needs some explaining. For each square, we have to create an
 event handler and attach it to the square. So let's write a function for
@@ -788,15 +761,15 @@ that:
 (defn attach-handler [square-num]
   (let [square? (dom/get-element-by-id (str \"square\" square-num))]
     (and square?
-         (dom/handle-event (extract square?)
-                           \"click\" (fn []
-                                       (send curr-player set-square square-num))))))
-
-"
+         (maybe (dom/handle-event (extract square?)
+                                  \"click\" (fn []
+                                              (send curr-player set-square square-num)))))) "
                     "
 The last task is to attach \"click\" handlers to each square. We'll do it with brute
 force. Feel free to copy and paste these expressions.
 
+  (send curr-player (fn [_] \"X\"))
+  (send board (fn [_] empty-board))
   (attach-handler 0)
   (attach-handler 1)
   (attach-handler 2)
@@ -812,7 +785,6 @@ And now you can play a game of TicTacToe.
 This tutorial was just the beginning. There's loads more features of Toccata to
 make building web apps, phone apps and native executables easily and quickly.
 
-Keep an eye on the Tutorials page for more and follow @toccata_lang on Twitter.
-"
+Keep an eye on the Tutorials page for more and follow @toccata_lang on Twitter. "
            ])
 

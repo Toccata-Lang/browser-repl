@@ -108,8 +108,18 @@
 (defn attach-handler [square-num]
   (let [square? (dom/get-element-by-id (str "square" square-num))]
     (and square?
-         (dom/handle-event (extract square?)
-                           "click" (fn []
-                                     (send curr-player set-square square-num))))))
+         (maybe (dom/handle-event (extract square?)
+                                  "click" (fn []
+                                            (send curr-player set-square square-num)))))))
 
-(map (range 9) attache-handler)
+(send curr-player (fn [_] "X"))
+(send board (fn [_] empty-board))
+(attach-handler 0)
+(attach-handler 1)
+(attach-handler 2)
+(attach-handler 3)
+(attach-handler 4)
+(attach-handler 5)
+(attach-handler 6)
+(attach-handler 7)
+(attach-handler 8)

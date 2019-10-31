@@ -162,7 +162,10 @@
                                             (grmr/apply-fn to-str
                                                            (grmr/none-or-more rdr/not-eol)))))))
 
-(def complete-expr (rd/parser (grmr/all read-expr rdr/newline)))
+(def complete-expr (rd/parser (grmr/all read-expr
+                                        rdr/ignore-linear-whitespace
+                                        rdr/newline
+                                        rdr/ignore-whitespace)))
 
 (inline C "
 Value *newPrErr(Value *str) {
@@ -185,6 +188,11 @@ Value *newPrErr(Value *str) {
    prErrSTAR = &newPrErr;
    return(nothing);"))
 
+(defn scroll-output []
+  (w/JS-eval
+   (str "var textarea = document.getElementById('output');"
+        "textarea.scrollTop = textarea.scrollHeight - textarea.clientHeight;")))
+
 (defn doScript [scr]
   (assert (instance? String scr))
   (send eval-state (fn [eval-state]
@@ -195,24 +203,61 @@ Value *newPrErr(Value *str) {
                                                        'line-number 1}
                                                       scr)
                                    :let [_ (clear-expression)
-                                         _ (pr-err* scr)]
+                                         _ (pr-err* (str "\n" scr))
+                                         _ (scroll-output)]
                                    [result new-state] ((ev/eval asts) eval-state)
                                    result (or (first result)
                                               (maybe ""))]
                                (do
                                  (pr-err* "=> ")
                                  (map (string-list result) pr-err*)
-                                 (pr-err* "\n\n")
+                                 (pr-err* "\n")
+                                 (scroll-output)
                                  new-state))
-                             eval-state))))
+                             (do
+                               (scroll-output)
+                               eval-state)))))
 
 (JS-callable doScript 1)
 
+(add-ns tut (module "tutorial.toc"))
+
+(def tutorial (agent {'step 0
+                      'text tut/text}))
+
+(defn update-tut [tut-state alt key]
+  (either (for [_ alt
+                step (get tut-state 'step)
+                next-step (or (and (= "p" key)
+                                   (maybe (dec step)))
+                              (and (= "n" key)
+                                   (maybe (inc step))))
+                msg (get-in tut-state ['text next-step])]
+            (do
+              (map (dom/get-element-by-id "output")
+                   (fn [n]
+                     (dom/inner-html n " ")))
+              (pr-err* msg)
+              (pr-err* "\n")
+              (pr-err* "----------------\n")
+              (scroll-output)
+              (w/JS-eval "var expr = document.getElementById('expression'); expr.focus();")
+              (assoc tut-state 'step next-step)))
+          tut-state))
+
+(defn handleKey [alt key]
+  (send tutorial update-tut alt key))
+
+(JS-callable handleKey 2)
+
 (main [_]
+  (w/JS-eval "document.onkeydown=function(e){
+handleKey(e.altKey, e.key);};")
   (initPrErr)
   (ev/init ev/universal-proto-fn)
   (clear-expression)
-  (print-err "Welcome to Toccata!\n"))
+  (pr-err* "\nWelcome to Toccata!\n")
+  (pr-err* (either (first tut/text) "")))
 
 ;; (main [params]
 ;;   ;; (initPrErr)
