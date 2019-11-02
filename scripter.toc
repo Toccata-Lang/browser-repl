@@ -225,15 +225,14 @@ Value *newPrErr(Value *str) {
 (def tutorial (agent {'step 0
                       'text tut/text}))
 
-(defn update-tut [tut-state alt key]
-  (either (for [_ alt
-                step (get tut-state 'step)
-                next-step (or (and (= "p" key)
-                                   (maybe (dec step)))
-                              (and (= "n" key)
-                                   (maybe (inc step))))
+(defn update-tut [tut-state step-delt]
+  (either (for [next-step (map (get tut-state 'step)
+                               (partial + step-delt))
                 msg (get-in tut-state ['text next-step])]
             (do
+              (map (dom/get-element-by-id "expression")
+                   (fn [n]
+                     (dom/inner-html n " ")))
               (map (dom/get-element-by-id "output")
                    (fn [n]
                      (dom/inner-html n " ")))
@@ -245,19 +244,24 @@ Value *newPrErr(Value *str) {
               (assoc tut-state 'step next-step)))
           tut-state))
 
-(defn handleKey [alt key]
-  (send tutorial update-tut alt key))
+(defn prev-step []
+  (send tutorial update-tut -1))
 
-(JS-callable handleKey 2)
+(defn next-step []
+  (send tutorial update-tut 1))
 
 (main [_]
-  (w/JS-eval "document.onkeydown=function(e){
-handleKey(e.altKey, e.key);};")
   (initPrErr)
   (ev/init ev/universal-proto-fn)
   (clear-expression)
   (pr-err* "\nWelcome to Toccata!\n")
-  (pr-err* (either (first tut/text) "")))
+  (map (dom/get-element-by-id "prev-step")
+       (fn [node]
+         (dom/handle-event node "click" prev-step)))
+  (map (dom/get-element-by-id "next-step")
+       (fn [node]
+         (dom/handle-event node "click" next-step)))
+  (send tutorial update-tut 0))
 
 ;; (main [params]
 ;;   ;; (initPrErr)

@@ -1,10 +1,6 @@
 (def text ["
 This tutorial is intended to get you up to speed and doing something useful as quickly
-as possible. So let's get right to it. First thing is how to navigate. Holding the 'Alt'
-(or 'Option' on a Mac) key down while pressing the 'N' or 'P' keys will move to the
-next or previous message respectively. Go ahead and move to the next message."
-           "
-You made the jump.
+as possible. So let's get right to it.
 
 Toccata is a programming language that you can use to write all kinds of software. It
 falls in the category of general programming languages. You'll be typing Toccata expressions
@@ -23,7 +19,8 @@ We're eventually going to write a Tic-Tac-Toe game for the web. But we've got a 
 If you're an experienced programmer, you can probably skip most of the explanations and just
 type in the examples.
 
-First of all are integers. Type the following number expression
+First of all are integers. Type the following number expression. After each expression, hit
+the 'return' or 'enter' key.
 
   73724"
              "

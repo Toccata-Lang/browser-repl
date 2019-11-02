@@ -2,30 +2,54 @@
 <html>
 
   <head >
-    <title >Toccata REPL</title>
+    <title >Toccata Tutorial</title>
     <meta charset="utf-8">
     <script src="scripter.js"
 	    type="text/javascript"
 	    style="max-width: 500px"> 
     </script> 
+    <style>
+      i {
+        border: solid black;
+        border-width: 0 3px 3px 0;
+        display: inline-block;
+        padding: 3px;
+      }
+
+      .right {
+        transform: rotate(-45deg);
+        -webkit-transform: rotate(-45deg);
+      }
+
+      .left {
+        transform: rotate(135deg);
+        -webkit-transform: rotate(135deg);
+      }
+    </style>
   </head>
   <body id="body" style="margin: 0px">
     <form>
       <div style="width: 100vw; display: flex; flex-direction: row;">
-	<div style="border-style: solid; border-width: 1px; border-color: green;">
-	  <textarea id="output"
-		    tabindex=0
-		    style="width: 50vw; height: 66vh;"
-		    readonly
-		    rows="80">
-	  </textarea>
+	<div style="width: 50%; display: flex; flex-direction: column;">
+	  <div style="width: 100%; display: flex; flex-direction: row; justify-content: space-around;">
+	    <p id="prev-step"><i class="arrow left"></i> Prev Step</p>
+	    <p id="next-step">Next Step<i class="arrow right"></i></p>
+	  </div>
+	  <div style="border-style: solid; border-width: 1px; border-color: green;">
+	    <textarea id="output"
+		      tabindex=0
+		      style="width: 100%; height: 66vh;"
+		      readonly
+		      rows="80">
+	    </textarea>
+	  </div>
 	</div>
-	<div id="sandbox"
+	<div id="sandbox" class="active"
 	     tabindex=0
 	     style="border-style: solid; border-width: 1px; border-color: purple;
 		    width: 50vw; display: block;"><span>sandbox</span></div>
       </div>
-      <textarea id="expression"
+      <textarea id="expression" class="active"
 		autofocus
 		oninput="doScript(this.value);"
 		rows="5"
@@ -33,14 +57,25 @@
 		style="width: 100%; height: 20vh;
 		       border-style: solid; border-width: 3; border-color: pink;"></textarea>
     </form>
-    <input type="file" id="inputFile"
-	   tabindex=0
-	   onchange="var fi = this.files.item(0);
-		     var reader = new FileReader();
-		     reader.onload = function() {
-		      doScript(reader.result);
-		     };
-		     reader.readAsBinaryString(fi);
-"/>
+    <div id="disqus_thread">
+    </div>
+    <script >
+      /**
+      *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+      *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+      var disqus_shortname = 'toccataio';
+      /*
+      var disqus_config = function () {
+      this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+      this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+      };
+      */
+      (function() { // DON'T EDIT BELOW THIS LINE
+      var d = document, s = d.createElement('script');
+      s.src = 'https://toccataio.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', +new Date());
+      (d.head || d.body).appendChild(s);
+      })();
+      </script>
   </body>
 </html>
