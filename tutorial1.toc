@@ -1,4 +1,5 @@
-(def text ["
+(def text [
+           "
 This tutorial is intended to get you up to speed and doing something useful as quickly
 as possible. So let's get right to it.
 
@@ -312,7 +313,17 @@ write a function to create a single square and call it 9 times. Type this expres
 This creates an HTML button using 'h/button' and then adds a bunch of CSS styling to make
 it look nice. There's also one attribute at the top that's important, the 'id' attribute.
 This attribute let's us distinguish between the 9 squares on the board. Each square gets a
-unique ID based on 'square-num'. Now do:
+unique ID based on 'square-num'.
+
+Just for grins, let's poke at this a little. Enter the following expressions one at a time:
+
+  square-view
+  
+  (square-view 9)
+  
+  (doc/html-str (square-view 18))
+  
+Now do:
 
   (try-html (square-view 10))
 

@@ -78,6 +78,8 @@
                "]));\n return;\n};")]
     (w/JS-eval s)))
 
+(def tutorial (agent {}))
+
 (def eval-state
   (let [core-ns (interp/make-compiled-ns "" (-> symbols
                                                 (dissoc 'println)
@@ -220,11 +222,6 @@ Value *newPrErr(Value *str) {
 
 (JS-callable doScript 1)
 
-(add-ns tut (module "tutorial.toc"))
-
-(def tutorial (agent {'step 0
-                      'text tut/text}))
-
 (defn update-tut [tut-state step-delt]
   (either (for [next-step (map (get tut-state 'step)
                                (partial + step-delt))
@@ -250,6 +247,29 @@ Value *newPrErr(Value *str) {
 (defn next-step []
   (send tutorial update-tut 1))
 
+(defn read-tut [scr]
+  (assert (instance? String scr))
+  (send eval-state
+        (fn [eval-state]
+          (either (for [[_ asts] (ev/parse {'file-name "Expression line"
+                                            'line-number 1}
+                                           scr)
+                        :let [_ (print-err 'asts asts)]
+                        [result new-state] ((ev/eval asts) eval-state)
+                        :let [_ (print-err 'result)]
+                        text (or (first result)
+                                   (maybe ""))]
+                    (do
+                      (send tutorial (fn [_]
+                                       {'step 0
+                                        'text text}))
+                      new-state))
+                  (do
+                    (send tutorial (fn [_]
+                                     {'step 0
+                                      'text []}))
+                    eval-state)))))
+
 (main [_]
   (initPrErr)
   (ev/init ev/universal-proto-fn)
@@ -261,6 +281,9 @@ Value *newPrErr(Value *str) {
   (map (dom/get-element-by-id "next-step")
        (fn [node]
          (dom/handle-event node "click" next-step)))
+  (map (dom/get-element-by-id "tutorial")
+       (fn [node]
+         (-> node dom/inner-html read-tut)))
   (send tutorial update-tut 0))
 
 ;; (main [params]
