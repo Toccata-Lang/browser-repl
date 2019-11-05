@@ -1,0 +1,272 @@
+["When we did the TicTacToe game, we had this function
+
+(defn update-board [board curr-player square-num]
+  (let [new-board? (store board square-num curr-player)
+        status? (dom/get-element-by-id \"status\")
+        square? (dom/get-element-by-id (str \"square\" square-num))]
+    (either (and new-board? 
+                 status?
+                 square?
+                 (let [new-board (extract new-board?)
+                       status-node (extract status?)
+                       square-node (extract square?)
+                       new-status (either (and (check-winner new-board)
+                                               (maybe (str \"Winner: \" curr-player)))
+                                          (str \"Next Player: \" (next-player curr-player)))]
+                   (dom/inner-html square-node curr-player)
+                   (dom/inner-html status-node new-status)
+                   (maybe new-board)))
+            board)))
+
+It's pretty long and kind of ugly. I want to show you how to write this in idiomatic Toccata,
+but that requires a detour."
+ "
+One of the key advancements in Toccata is that most of the core library are not standalone
+functions in isolation. Rather, the core data types implement interfaces. And any types that
+a programmer creates can also implement those interfaces. We're going to explore those
+functions in this tutorial. Start by seeing what this expression returns.
+
+  (inc 8)
+
+Obviously it's 9. Now try
+
+  (inc (maybe 8))
+
+That's a nice little error. So we can't increment a Maybe value because addition isn't defined
+for it. The right answer isn't to implement '+' for Maybe. It's this
+
+  (map (maybe 8) inc)
+"
+ "
+No need to type this again, unless your short term memory is shot.
+
+  (map (maybe 8) inc)
+
+The 'map' function is one of those core interface functions and Maybe implements it. Remember
+that Maybe is a type whose values can contain other values. And this 'map' function takes the
+Maybe value and the function 'inc', takes the 8 from inside the Maybe, passes that to 'inc' to
+get 9 and then puts that into a new Maybe value.
+
+But what happens when the argument to 'map' is an empty Maybe (ie. nothing)?
+
+  (map nothing inc) "
+ "
+So the implementation of 'map' for Maybe could look something like
+
+  (defn map-maybe [maybe-value func]
+    (and maybe-value
+         (let [inner-value (extract maybe-value)]
+           (maybe (func inner-value)))))
+
+If you want, you can type that in and play around with it."
+ "
+Since Maybe can have 1 value inside it, what might 'map' do for types that can have many
+values inside them? Try this.
+
+  (map [1 2 3] inc)
+
+There's another type very similar to Vector called List. I won't explain much about it.
+But type this expression in
+
+  (range 5)
+
+'range' returns a list of numbers up to (but not including) the number passed to it. And
+the following shouldn't be a surprise
+
+(map (range 5) inc)
+"
+ "
+Remember at the end of the TicTacToe tutorial, we did this
+
+  (attach-handler 0)
+  (attach-handler 1)
+  (attach-handler 2)
+  (attach-handler 3)
+  (attach-handler 4)
+  (attach-handler 5)
+  (attach-handler 6)
+  (attach-handler 7)
+  (attach-handler 8)
+
+I hope you're now thinking \"Wait a minute ...\"
+
+  (map (range 9) attach-handler)
+
+Feel free to go back to that tutorial and try it."
+ "
+Now, let's look at another core function. Let's say we want a function to divide 30 by
+some number. (Don't ask why, just go with me on this one)
+
+  (defn div-30 [n]
+    (and (or (< n 0)
+             (> n 0))
+         (maybe (div 30 n))))
+  
+Try this out with several numbers, including 0. And now try to map some Maybe values
+with it.
+
+   (map (maybe 4) div-30)
+
+   (map (maybe 0) div-30)
+
+That may be what you expected, but it's almost certainly not what you (or whoever
+wrote this) wanted. What we really wanted was a function that would do the map, then
+get the inner Maybe value from inside the resulting nested Maybe value. In other words,
+do the 'map' and then flatten the result by one layer. Try each of these
+
+  (flat-map (maybe 4) div-30)
+
+  (flat-map (maybe 0) div-30)"
+ "
+Just like Vector also had an implementation of 'map', it also has an implementation
+of 'flat-map'. First we need a function that takes an integer and returns a vector.
+But instead of naming it, we'll just use an anonymous function.
+
+  (flat-map [1 2 3] (fn [n]
+                      [n (inc n)]))
+
+  (flat-map [] (fn [n]
+                 [n (inc n)]))
+
+Pretty straight forward. Make up a number of expressions with 'map' and 'flat-map'
+until you're comfortable with how they behave."
+ "
+What you may not realize is that we've just unlocked an immense amount of power to
+write much better code. Let's see why. First, let's bring back that ugly function.
+I replaced the 'either' expression with a function named 'status-msg' to get it out
+of the way.
+
+(defn update-board [board curr-player square-num]
+  (let [new-board? (store board square-num curr-player)
+        status? (dom/get-element-by-id \"status\")
+        square? (dom/get-element-by-id (str \"square\" square-num))]
+    (either (and new-board? 
+                 status?
+                 square?
+                 (let [new-board (extract new-board?)
+                       status-node (extract status?)
+                       square-node (extract square?)
+                       new-status (status-msg new-board curr-player)]
+                   (dom/inner-html square-node curr-player)
+                   (dom/inner-html status-node new-status)
+                   (maybe new-board)))
+            board)))
+
+In the outer 'let', each of those three functions return a Maybe value that we
+bind to names ending in ?'s. And then we have to use the 'and' expression to
+make sure that none of them are 'nothing'. And then we have to use 'extract'.
+Ugly."
+ "
+Let's use 'flat-map' to deal with the call to 'store'.
+
+  (defn update-board [board curr-player square-num]
+    (either (flat-map (store board square-num curr-player)
+                      (fn [new-board]
+                        (let [status? (dom/get-element-by-id \"status\")
+                              square? (dom/get-element-by-id (str \"square\" square-num))]
+                          (either (and status?
+                                       square?
+                                       (let [status-node (extract status?)
+                                             square-node (extract square?)
+                                             new-status (status-msg new-board curr-player)]
+                                         (dom/inner-html square-node curr-player)
+                                         (dom/inner-html status-node new-status)
+                                         (maybe new-board)))
+                                  board))))
+            board))
+
+See how the call to flat-map elminated the need for 'new-board?' entirely? On the other
+hand, it does require an additional outer 'either' expression. I'll tell you now, the inner
+'either' expression will go away entirely. So let's press on and do the first call to
+'get-element-by-id'. We can put another call to 'flat-map' inside the anonymous function
+we're passing to the first one."
+ "
+I've put some line breaks in to make the indentation look nicer.
+
+  (defn update-board [board curr-player square-num]
+    (either
+     (flat-map
+      (store board square-num curr-player)
+      (fn [new-board]
+        (flat-map (dom/get-element-by-id \"status\")
+                  (fn [status-node]
+                    (let [square? (dom/get-element-by-id (str \"square\" square-num))]
+                      (either (and square?
+                                   (let [square-node (extract square?)
+                                         new-status (status-msg new-board curr-player)]
+                                     (dom/inner-html square-node curr-player)
+                                     (dom/inner-html status-node new-status)
+                                     (maybe new-board)))
+                              board))))))
+     board))
+
+There's nothing new here. But now, let's do the next call to 'get-element-by-id'.
+Except we'll use 'map' instead of 'flat-map'."
+ "
+(defn update-board [board curr-player square-num]
+  (either
+   (flat-map (store board square-num curr-player)
+             (fn [new-board]
+               (flat-map (dom/get-element-by-id \"status\")
+                         (fn [status-node]
+                           (map (str \"square\" square-num)
+                                (fn [square-node]
+                                  (let [new-status (status-msg new-board curr-player)]
+                                    (dom/inner-html square-node curr-player)
+                                    (dom/inner-html status-node new-status)
+                                    new-board)))))))
+          board))
+
+And 'square?' goes away, along with the 'and', 'extract' and the inner 'either' expressions.
+That's a nice win. But now, let me take just the skeleton of the 'flat-map' expressions"
+ "
+  (flat-map <expression 1>
+            (fn [x]
+              (flat-map <expression 2>
+                        (fn [y]
+                          (map <expression 3>
+                               (fn [z]
+                                 <expression using 'x', 'y', and 'z'>))))))
+
+That's an awful lot of repetition and boilerplate. It would be nice it the compiler would
+do all that for us. Et voila
+
+  (for [x <expression 1>
+        y <expression 2>
+        z <expression 3>]
+    <expression using 'x', 'y' and 'z'>)
+
+Understanding this expression hinges on understanding the result of each of the three
+expressions and understanding what their 'flat-map' implementation does. But, once you
+do, and it quickly becomes second nature, this code is much more readable. Let's see
+what that ugly function looks like."
+ "
+  (defn update-board [board curr-player square-num]
+    (either (for [new-board (store board square-num curr-player)
+                  status-node (dom/get-element-by-id \"status\")
+                  square-node (str \"square\" square-num)]
+              (let [new-status (status-msg new-board curr-player)]
+                (dom/inner-html square-node curr-player)
+                (dom/inner-html status-node new-status)
+                new-board))
+            board))
+
+Quite a bit more readable. If any of our three expressions evaluate to 'nothing', the
+whole 'for' expression is 'nothing' and so the 'either' expression just evaluates to
+original value of the 'board'. But if all three return values, the board HTML and the
+status get updated and the 'new-board' value is returned."
+ "
+But now, consider that Vector also has an implementation for 'map' and 'flat-map', so
+what does this do? Type it in and see.
+
+  (for [x [1 2 3]
+        y [\"a\" \"b\" \"c\"]]
+    [x y])
+
+As you can see, it pairs each number with each string in a vector and produces one
+long vector of vectors. BTW, this is called the cross product or Cartesian product."
+ "
+Several other core types implement 'map' and 'flat-map' and many of the other core
+functions are really interfaces that types can have implementations for. And any type
+can have an implementation for any of these functions written for it. We'll be
+seeing the power of this in future tutorials. It's really what sets Toccata apart."]
